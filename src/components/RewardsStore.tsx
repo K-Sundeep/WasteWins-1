@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion'; // fix import
+import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -8,18 +8,11 @@ import { ShoppingBag, Gift, Star, Award, Coins, Loader2, Coffee, Leaf } from 'lu
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
 import { useRewards, useUserProfile } from '../hooks/useApi';
-import { toast } from 'sonner';
-
-// Add UserProfile type to fix TS errors
-type UserProfile = {
-  points?: number;
-  // add other fields as needed
-};
+import { toast } from 'sonner@2.0.3';
 
 export function RewardsStore() {
   const { user } = useAuth();
-  // Cast hook result to correct type
-  const { profile } = useUserProfile() as { profile: UserProfile | null };
+  const { profile } = useUserProfile();
   const { rewards, redeemReward } = useRewards();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [redeeming, setRedeeming] = useState<number | null>(null);
