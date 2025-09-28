@@ -30,7 +30,6 @@ function AppContent() {
       </main>
       <Footer />
       <Toaster />
-      <Analytics />
     </div>
   );
 }
@@ -39,6 +38,7 @@ export default function App() {
   return (
     <AuthProvider>
       <AppContent />
+      <Analytics />
     </AuthProvider>
   );
 }

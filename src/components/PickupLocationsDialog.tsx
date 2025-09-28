@@ -4,6 +4,7 @@ import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { MapPin, Clock, Phone, Star } from 'lucide-react';
 import { motion } from 'motion/react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
 interface PickupLocationsDialogProps {
   children: React.ReactNode;
@@ -13,60 +14,67 @@ export function PickupLocationsDialog({ children }: PickupLocationsDialogProps) 
   const locations = [
     {
       id: 1,
-      name: 'Downtown Collection Center',
-      address: '123 Main Street, Downtown',
-      distance: '0.5 miles',
+      name: 'Mumbai Collection Center',
+      address: '123 Marine Drive, Mumbai',
+      distance: '0.5 km',
       hours: 'Mon-Sat: 8AM-6PM',
-      phone: '(555) 123-4567',
+      phone: '+91 91234 56789',
       rating: 4.8,
       services: ['Clothes', 'Books', 'Plastic'],
-      color: 'from-primary to-primary/70'
+      color: 'from-primary to-primary/70',
+      coordinates: [19.0760, 72.8777] // Mumbai
     },
     {
       id: 2,
-      name: 'Westside Hub',
-      address: '456 Oak Avenue, Westside',
-      distance: '1.2 miles',
+      name: 'Delhi Hub',
+      address: '456 Connaught Place, Delhi',
+      distance: '1.2 km',
       hours: 'Mon-Sun: 7AM-8PM',
-      phone: '(555) 234-5678',
+      phone: '+91 92345 67890',
       rating: 4.9,
       services: ['Clothes', 'Books'],
-      color: 'from-secondary to-amber-500'
+      color: 'from-secondary to-amber-500',
+      coordinates: [28.6139, 77.2090] // Delhi
     },
     {
       id: 3,
-      name: 'Eastside Drop-off',
-      address: '789 Pine Road, Eastside',
-      distance: '2.1 miles',
+      name: 'Bangalore Drop-off',
+      address: '789 MG Road, Bangalore',
+      distance: '2.1 km',
       hours: 'Tue-Sun: 9AM-5PM',
-      phone: '(555) 345-6789',
+      phone: '+91 93456 78901',
       rating: 4.7,
       services: ['Plastic', 'Books'],
-      color: 'from-blue-500 to-blue-600'
+      color: 'from-blue-500 to-blue-600',
+      coordinates: [12.9716, 77.5946] // Bangalore
     },
     {
       id: 4,
-      name: 'Central Station',
-      address: '321 Elm Street, City Center',
-      distance: '1.8 miles',
+      name: 'Hyderabad Central Station',
+      address: '321 Banjara Hills, Hyderabad',
+      distance: '1.8 km',
       hours: 'Mon-Fri: 8AM-7PM',
-      phone: '(555) 456-7890',
+      phone: '+91 94567 89012',
       rating: 4.6,
       services: ['Clothes', 'Plastic'],
-      color: 'from-green-500 to-green-600'
+      color: 'from-green-500 to-green-600',
+      coordinates: [17.3850, 78.4867] // Hyderabad
     },
     {
       id: 5,
-      name: 'Northside Point',
-      address: '654 Maple Drive, Northside',
-      distance: '3.0 miles',
+      name: 'Chennai Northside Point',
+      address: '654 Anna Salai, Chennai',
+      distance: '3.0 km',
       hours: 'Wed-Sun: 10AM-6PM',
-      phone: '(555) 567-8901',
+      phone: '+91 95678 90123',
       rating: 4.5,
       services: ['Clothes', 'Books', 'Plastic'],
-      color: 'from-purple-500 to-purple-600'
+      color: 'from-purple-500 to-purple-600',
+      coordinates: [13.0827, 80.2707] // Chennai
     }
   ];
+
+  const center = [22.9734, 78.6569]; // Center of India (near Jabalpur)
 
   return (
     <Dialog>
@@ -161,6 +169,23 @@ export function PickupLocationsDialog({ children }: PickupLocationsDialogProps) 
           <p className="text-sm text-muted-foreground">
             Can't find a location near you? <Button variant="link" className="p-0 h-auto">Request a new pickup point</Button>
           </p>
+        </div>
+
+        {/* Map Container */}
+        <div className="mt-8 h-96">
+          <MapContainer center={center} zoom={13} style={{ height: "100%", width: "100%" }}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {locations.map((location) => (
+              <Marker key={location.id} position={location.coordinates}>
+                <Popup>
+                  {location.name}<br />{location.address}
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
       </DialogContent>
     </Dialog>
