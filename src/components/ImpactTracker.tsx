@@ -4,21 +4,13 @@ import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TreePine, Users, Factory, Zap } from 'lucide-react';
-import { useAuth } from './AuthProvider';
-import { useUserImpact } from '../hooks/useUserImpact';
-import { QuickDonate } from './QuickDonate';
 
 export function ImpactTracker() {
-  const { user } = useAuth();
-  // Use refreshable hook
-  const { impact, refresh } = useUserImpact(user?.id);
-
-  const totalDonated = impact?.totalDonated ?? 0;
-  const pointsEarned = impact?.pointsEarned ?? 0;
-  const co2Saved = impact?.co2Saved ?? 0;
-  const productsMade = impact?.productsMade ?? 0;
-
-  // Optionally, update impactData and wasteBreakdown to use real data from impact if available
+  // Example static values (restore to initial state)
+  const totalDonated = 75.2;
+  const pointsEarned = 1580;
+  const co2Saved = 320.5;
+  const productsMade = 120;
 
   const impactData = [
     { name: 'Jan', waste: 1200, products: 450 },

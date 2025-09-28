@@ -92,7 +92,7 @@ export function QuickDonate({ onDonated }: { onDonated?: () => void }) {
       // Refresh user profile to update points
       refetchProfile();
       // Call parent callback to refresh impact stats
-      if (onDonated) onDonated();
+      if (onDonated) onDonated(); // Refresh impact after donation
     }
     
     setLoading(false);
