@@ -10,6 +10,7 @@ import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import { AuthProvider } from './components/AuthProvider';
 import { useAuth } from './components/AuthProvider';
+import { Analytics } from "@vercel/analytics/react"; // use 'react' for Vite/CRA, 'next' for Next.js
 
 
 function AppContent() {
@@ -29,6 +30,7 @@ function AppContent() {
       </main>
       <Footer />
       <Toaster />
+      <Analytics />
     </div>
   );
 }
