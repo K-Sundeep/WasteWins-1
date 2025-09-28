@@ -10,9 +10,10 @@ import { Calendar, Camera, MapPin, Weight, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
 import { useDonations, useUserProfile } from '../hooks/useApi';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
-export function QuickDonate() {
+// Add prop for onDonated callback
+export function QuickDonate({ onDonated }: { onDonated?: () => void }) {
   const { user } = useAuth();
   const { createDonation } = useDonations();
   const { refetch: refetchProfile } = useUserProfile();
@@ -90,6 +91,8 @@ export function QuickDonate() {
       setTimeSlot('');
       // Refresh user profile to update points
       refetchProfile();
+      // Call parent callback to refresh impact stats
+      if (onDonated) onDonated();
     }
     
     setLoading(false);

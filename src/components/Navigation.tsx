@@ -4,7 +4,7 @@ import { Menu, X, Leaf, User, Gift, MapPin, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import wasteWinsLogo from 'figma:asset/64842a1307aaa63c3be652b7db9827f80be7ab2a.png';
 
 export function Navigation() {
@@ -16,7 +16,7 @@ export function Navigation() {
     { name: 'How it Works', href: '#how-it-works' },
     { name: 'Rewards', href: '#rewards' },
     { name: 'Impact', href: '#impact' },
-    { name: 'Pickup', href: '#pickup' },
+    { name: 'Pickup', href: '#quick-donate' },
   ];
 
   const handleSignOut = async () => {

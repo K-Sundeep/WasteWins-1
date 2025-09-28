@@ -4,8 +4,22 @@ import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TreePine, Users, Factory, Zap } from 'lucide-react';
+import { useAuth } from './AuthProvider';
+import { useUserImpact } from '../hooks/useUserImpact';
+import { QuickDonate } from './QuickDonate';
 
 export function ImpactTracker() {
+  const { user } = useAuth();
+  // Use refreshable hook
+  const { impact, refresh } = useUserImpact(user?.id);
+
+  const totalDonated = impact?.totalDonated ?? 0;
+  const pointsEarned = impact?.pointsEarned ?? 0;
+  const co2Saved = impact?.co2Saved ?? 0;
+  const productsMade = impact?.productsMade ?? 0;
+
+  // Optionally, update impactData and wasteBreakdown to use real data from impact if available
+
   const impactData = [
     { name: 'Jan', waste: 1200, products: 450 },
     { name: 'Feb', waste: 1800, products: 680 },
@@ -64,19 +78,19 @@ export function ImpactTracker() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-primary/5 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">75.2 kg</div>
+                    <div className="text-2xl font-bold text-primary">{totalDonated} kg</div>
                     <div className="text-sm text-muted-foreground">Total Donated</div>
                   </div>
                   <div className="text-center p-4 bg-secondary/5 rounded-lg">
-                    <div className="text-2xl font-bold text-secondary">1,580</div>
+                    <div className="text-2xl font-bold text-secondary">{pointsEarned}</div>
                     <div className="text-sm text-muted-foreground">Points Earned</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">45.8 kg</div>
+                    <div className="text-2xl font-bold text-green-600">{co2Saved} kg</div>
                     <div className="text-sm text-muted-foreground">CO₂ Saved</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">28</div>
+                    <div className="text-2xl font-bold text-blue-600">{productsMade}</div>
                     <div className="text-sm text-muted-foreground">Products Made</div>
                   </div>
                 </div>

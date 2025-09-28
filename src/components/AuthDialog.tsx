@@ -13,7 +13,7 @@ import { Label } from './ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { useAuth } from './AuthProvider';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Loader2, Mail, Lock, User } from 'lucide-react';
 
 interface AuthDialogProps {

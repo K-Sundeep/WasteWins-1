@@ -11,6 +11,7 @@ import { Toaster } from './components/ui/sonner';
 import { AuthProvider } from './components/AuthProvider';
 import { useAuth } from './components/AuthProvider';
 
+
 function AppContent() {
   const { user } = useAuth();
 

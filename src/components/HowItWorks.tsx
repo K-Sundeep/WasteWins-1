@@ -131,20 +131,20 @@ export function HowItWorks() {
 
               {/* Books Pipeline */}
               <div className="text-center space-y-4">
-                <div className="text-4xl">📚</div>
-                <h4 className="font-semibold">Books & Paper</h4>
+                <div className="text-4xl">🌱</div>
+                <h4 className="font-semibold">Biowaste</h4>
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center justify-center space-x-2">
                     <ArrowRight className="w-3 h-3" />
-                    <span>Recycled Paper</span>
+                    <span>Fruit Peels</span>
                   </div>
                   <div className="flex items-center justify-center space-x-2">
                     <ArrowRight className="w-3 h-3" />
-                    <span>New Books</span>
+                    <span>Vegetable Peels</span>
                   </div>
                   <div className="flex items-center justify-center space-x-2">
                     <ArrowRight className="w-3 h-3" />
-                    <span>Notebooks</span>
+                    <span>Bio-Degradable</span>
                   </div>
                 </div>
               </div>

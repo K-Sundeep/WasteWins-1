@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion'; // FIXED import
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -19,11 +19,22 @@ import {
 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { useUserProfile, useDonations } from '../hooks/useApi';
+import { QuickDonate } from './QuickDonate';
+
+// Add UserProfile type to fix TS errors
+type UserProfile = {
+  name?: string;
+  points?: number;
+  totalDonations?: number;
+  totalWeight?: number;
+  // add other fields as needed
+};
 
 export function UserDashboard() {
   const { user } = useAuth();
-  const { profile, loading: profileLoading } = useUserProfile();
-  const { donations, loading: donationsLoading } = useDonations();
+  // Cast hook result to correct type
+  const { profile, loading: profileLoading, refetch: refetchProfile } = useUserProfile() as { profile: UserProfile | null, loading: boolean, refetch: () => void };
+  const { donations = [], loading: donationsLoading, refetch: refetchDonations } = useDonations();
 
   if (!user) return null;
 
