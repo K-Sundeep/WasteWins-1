@@ -9,27 +9,22 @@ import { Badge } from './ui/badge';
 import { Calendar, Camera, MapPin, Weight, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
-import { useDonations, useUserProfile } from '../hooks/useApi';
 import { toast } from 'sonner';
 
-// Add prop for onDonated callback
-export function QuickDonate({ onDonated }: { onDonated?: () => void }) {
+export function QuickDonate() {
   const { user } = useAuth();
-  const { createDonation } = useDonations();
-  const { refetch: refetchProfile } = useUserProfile();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const [selectedCategory, setSelectedCategory] = useState('');
   const [weight, setWeight] = useState('');
-
   const [address, setAddress] = useState('');
   const [timeSlot, setTimeSlot] = useState('');
   const [items, setItems] = useState('');
 
   const categories = [
     { id: 'clothes', name: 'Clothes', icon: '👕', points: '10-50 pts/kg' },
-    { id: 'biowaste', name: 'BIOWASTE', icon: '🌱', points: '15-35 pts/kg' },
+    { id: 'biowaste', name: 'BioWaste', icon: '🌱', points: '15-35 pts/kg' },
     { id: 'plastic', name: 'Plastic', icon: '♻️', points: '5-25 pts/kg' },
   ];
 
@@ -52,27 +47,11 @@ export function QuickDonate({ onDonated }: { onDonated?: () => void }) {
     }
 
     setLoading(true);
-    
-    const donationData = {
-      category: selectedCategory,
-      weight: parseFloat(weight),
-      items,
-      pickupType: 'pickup',
-      address,
-      timeSlot,
-    };
 
-    const { data, error } = await createDonation(donationData);
-    
-    if (error) {
-      toast.error('Failed to create donation: ' + error);
-    } else {
-      // Calculate points earned
-      const estimatedPoints = Math.round(Number(weight) * 20);
-      
-      // Show success message with points
+    // Simulate donation API call
+    setTimeout(() => {
       toast.success(
-        `🎉 Donation scheduled successfully! You've earned ${estimatedPoints} reward points!`, 
+        `🎉 Donation scheduled successfully! You've earned ${Math.round(Number(weight) * 20)} reward points!`,
         {
           duration: 5000,
           style: {
@@ -82,20 +61,14 @@ export function QuickDonate({ onDonated }: { onDonated?: () => void }) {
           }
         }
       );
-      
-      // Reset form
+
       setSelectedCategory('');
       setWeight('');
       setItems('');
       setAddress('');
       setTimeSlot('');
-      // Refresh user profile to update points
-      refetchProfile();
-      // Call parent callback to refresh impact stats
-      if (onDonated) onDonated(); // Refresh impact after donation
-    }
-    
-    setLoading(false);
+      setLoading(false);
+    }, 1500);
   };
 
   return (
@@ -262,7 +235,6 @@ export function QuickDonate({ onDonated }: { onDonated?: () => void }) {
           </Card>
         </motion.div>
       </div>
-      
       <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
     </section>
   );

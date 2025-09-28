@@ -6,12 +6,6 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell }
 import { TreePine, Users, Factory, Zap } from 'lucide-react';
 
 export function ImpactTracker() {
-  // Example static values (restore to initial state)
-  const totalDonated = 75.2;
-  const pointsEarned = 1580;
-  const co2Saved = 320.5;
-  const productsMade = 120;
-
   const impactData = [
     { name: 'Jan', waste: 1200, products: 450 },
     { name: 'Feb', waste: 1800, products: 680 },
@@ -70,19 +64,19 @@ export function ImpactTracker() {
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 bg-primary/5 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{totalDonated} kg</div>
+                    <div className="text-2xl font-bold text-primary">75.2 kg</div>
                     <div className="text-sm text-muted-foreground">Total Donated</div>
                   </div>
                   <div className="text-center p-4 bg-secondary/5 rounded-lg">
-                    <div className="text-2xl font-bold text-secondary">{pointsEarned}</div>
+                    <div className="text-2xl font-bold text-secondary">1,580</div>
                     <div className="text-sm text-muted-foreground">Points Earned</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{co2Saved} kg</div>
+                    <div className="text-2xl font-bold text-green-600">45.8 kg</div>
                     <div className="text-sm text-muted-foreground">CO₂ Saved</div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{productsMade}</div>
+                    <div className="text-2xl font-bold text-blue-600">28</div>
                     <div className="text-sm text-muted-foreground">Products Made</div>
                   </div>
                 </div>
