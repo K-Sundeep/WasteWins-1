@@ -1,11 +1,15 @@
+import React from 'react';
 import { motion } from 'motion/react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TreePine, Users, Factory, Zap } from 'lucide-react';
+import { RecyclingMap } from './RecyclingMap';
+import { useOpenDataRecycling } from '../hooks/useOpenData';
 
 export function ImpactTracker() {
+  const { sites } = useOpenDataRecycling();
   const impactData = [
     { name: 'Jan', waste: 1200, products: 450 },
     { name: 'Feb', waste: 1800, products: 680 },
@@ -28,6 +32,7 @@ export function ImpactTracker() {
     { title: '100kg Donated', achieved: false, points: 1000, progress: 75 },
     { title: 'Eco Champion', achieved: false, points: 2000, progress: 25 },
   ];
+
 
   return (
     <section id="impact" className="py-20 bg-muted/30">
@@ -135,6 +140,11 @@ export function ImpactTracker() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {sites && (
+                  <div className="text-sm text-muted-foreground">
+                    Nearby recycling centers detected: <span className="font-medium">{sites.length}</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 gap-4">
                   <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center space-x-3">
@@ -146,7 +156,6 @@ export function ImpactTracker() {
                     </div>
                     <div className="text-2xl font-bold">247</div>
                   </div>
-                  
                   <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <Users className="w-6 h-6 text-secondary" />
@@ -157,7 +166,6 @@ export function ImpactTracker() {
                     </div>
                     <div className="text-2xl font-bold">1,340</div>
                   </div>
-                  
                   <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <Zap className="w-6 h-6 text-green-600" />
@@ -169,6 +177,9 @@ export function ImpactTracker() {
                     <div className="text-2xl font-bold">2.8 MW</div>
                   </div>
                 </div>
+
+                {/* Nearby Recycling Centers Map */}
+                <RecyclingMap />
 
                 {/* Monthly Progress Chart */}
                 <div>
@@ -188,62 +199,6 @@ export function ImpactTracker() {
             </Card>
           </motion.div>
         </div>
-
-        {/* Milestones and Achievements */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          viewport={{ once: true }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Badge className="w-5 h-5" />
-                <span>Milestones & Achievements</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {milestones.map((milestone, index) => (
-                  <motion.div
-                    key={milestone.title}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className={`p-4 rounded-lg border-2 ${
-                      milestone.achieved
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted bg-muted/30'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold">{milestone.title}</h4>
-                      <Badge
-                        variant={milestone.achieved ? "default" : "outline"}
-                        className="text-xs"
-                      >
-                        +{milestone.points}
-                      </Badge>
-                    </div>
-                    
-                    {milestone.achieved ? (
-                      <div className="text-sm text-primary font-medium">✓ Completed</div>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="text-sm text-muted-foreground">
-                          Progress: {milestone.progress}%
-                        </div>
-                        <Progress value={milestone.progress} className="h-2" />
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </div>
     </section>
   );

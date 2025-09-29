@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -10,21 +10,41 @@ import { Calendar, Camera, MapPin, Weight, Clock, Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
 import { useDonations, useUserProfile } from '../hooks/useApi';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
+import { useWeatherAqi } from '../hooks/useWeatherAqi';
+import { useCarbon } from '../hooks/useCarbon';
+import { estimateDistanceKm, estimateDistanceKmBetween } from '../hooks/useDistance';
+import { useOpenDataRecycling } from '../hooks/useOpenData';
+import { usePlacesAutocomplete } from '../hooks/usePlaces';
 
 export function QuickDonate() {
   const { user } = useAuth();
   const { createDonation } = useDonations();
   const { refetch: refetchProfile } = useUserProfile();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   
+  const [loading, setLoading] = useState(false);
+  const { weather, aqi } = useWeatherAqi();
+  const { estimate } = useCarbon();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [weight, setWeight] = useState('');
 
+  const defaultDistanceKm = Number(((import.meta as any)?.env?.VITE_DEFAULT_PICKUP_DISTANCE_KM)) || 5;
   const [address, setAddress] = useState('');
+  const addressRef = useRef<HTMLInputElement>(null);
+  const [destCoords, setDestCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [timeSlot, setTimeSlot] = useState('');
   const [items, setItems] = useState('');
+  const [distanceKm, setDistanceKm] = useState('');
+  const { coords } = useOpenDataRecycling(5000);
+  usePlacesAutocomplete(addressRef, (p) => {
+    setAddress(p.address);
+    if (Number.isFinite(p.lat) && Number.isFinite(p.lon)) {
+      setDestCoords({ lat: p.lat, lon: p.lon });
+    } else {
+      setDestCoords(null);
+    }
+  });
 
   const categories = [
     { id: 'clothes', name: 'Clothes', icon: '👕', points: '10-50 pts/kg' },
@@ -68,10 +88,27 @@ export function QuickDonate() {
     } else {
       // Calculate points earned
       const estimatedPoints = Math.round(Number(weight) * 20);
-      
-      // Show success message with points
+      // Estimate CO2 saved (best-effort)
+      let co2Note = '';
+      try {
+        let dist = distanceKm ? parseFloat(distanceKm) : defaultDistanceKm;
+        // Prefer coordinate-based routing if we have both origin and destination
+        if (!distanceKm && coords && destCoords) {
+          const gKm = await estimateDistanceKmBetween({ lat: coords.lat, lon: coords.lon }, destCoords);
+          if (gKm && isFinite(gKm)) dist = gKm;
+        } else if (!distanceKm && coords) {
+          // Fallback to address-based estimation
+          const autoKm = await estimateDistanceKm({ lat: coords.lat, lon: coords.lon }, address);
+          if (autoKm && isFinite(autoKm)) dist = autoKm;
+        }
+        const co2 = await estimate({ category: selectedCategory, weightKg: parseFloat(weight), distanceKm: dist });
+        if (co2 && co2.co2kg > 0) {
+          co2Note = ` • Estimated CO₂ saved: ~${co2.co2kg.toFixed(1)} kg` + (co2.source === 'fallback' ? ' (source: fallback)' : '') + ` • distance: ${dist.toFixed(1)} km`;
+        }
+      } catch {}
+
       toast.success(
-        `🎉 Donation scheduled successfully! You've earned ${estimatedPoints} reward points!`, 
+        `🎉 Donation scheduled successfully! You've earned ${estimatedPoints} reward points!${co2Note}`, 
         {
           duration: 5000,
           style: {
@@ -196,10 +233,30 @@ export function QuickDonate() {
                   <Input
                     id="address"
                     placeholder="Enter your pickup address"
+                    ref={addressRef}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     required
                   />
+                </div>
+
+                {/* Optional Distance */}
+                <div className="space-y-2">
+                  <Label htmlFor="distanceKm" className="flex items-center space-x-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>Estimated Pickup Distance (km)</span>
+                  </Label>
+                  <Input
+                    id="distanceKm"
+                    type="number"
+                    step="0.1"
+                    placeholder={`${defaultDistanceKm}`}
+                    value={distanceKm}
+                    onChange={(e) => setDistanceKm(e.target.value)}
+                  />
+                  <div className="text-xs text-muted-foreground">
+                    Leave blank to use default {defaultDistanceKm} km.
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -219,6 +276,28 @@ export function QuickDonate() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {/* Weather & Air Quality Hints (non-intrusive) */}
+                  {(weather || aqi) && (
+                    <div className="text-sm text-muted-foreground bg-muted/40 rounded-md p-3">
+                      <div className="flex flex-wrap gap-3">
+                        {weather?.temperatureC !== undefined && (
+                          <span>
+                            Temp: <span className="font-medium">{Math.round(weather?.temperatureC ?? 0)}°C</span>
+                          </span>
+                        )}
+                        {weather?.precipitationProb !== undefined && (
+                          <span>
+                            Rain chance next hr: <span className="font-medium">{Math.round(weather?.precipitationProb ?? 0)}%</span>
+                          </span>
+                        )}
+                        {aqi?.category && (
+                          <span>
+                            Air quality: <span className="font-medium">{aqi.category}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -264,3 +343,8 @@ export function QuickDonate() {
     </section>
   );
 }
+
+
+
+
+
