@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from './ui/card';
 import { ArrowRight, Package, Factory, Recycle, Gift } from 'lucide-react';
 

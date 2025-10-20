@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { MapPin, Navigation, Clock, Leaf, TrendingDown, AlertCircle } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 interface DistanceEstimatorProps {
   distanceKm: number;

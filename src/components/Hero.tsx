@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { ArrowRight, Recycle, Award, MapPin } from 'lucide-react';
 import { PickupLocationsDialog } from './PickupLocationsDialog';

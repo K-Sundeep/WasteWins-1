@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { MapPin, Clock, Phone, Star, Search, Navigation, Loader2, TrendingUp, Filter } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { useOpenDataRecycling, type RecyclingSite } from '../hooks/useOpenData';
 import { haversineDistance, formatDistance } from '../utils/distance';
