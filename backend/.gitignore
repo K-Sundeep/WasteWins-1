@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 package-lock.json
+<<<<<<< HEAD
 yarn.lock
 
 # Environment variables
@@ -18,6 +19,19 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+=======
+
+# Environment variables (CRITICAL - never commit these!)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Build outputs
+dist/
+build/
+.vite/
+>>>>>>> 99a3dcda63b03527070925f896e7a75fa70928df
 
 # IDE
 .vscode/
@@ -30,9 +44,24 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
+<<<<<<< HEAD
 # Testing
 coverage/
 .nyc_output/
 
 # Misc
 *.tsbuildinfo
+=======
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Misc
+.cache/
+.temp/
+>>>>>>> 99a3dcda63b03527070925f896e7a75fa70928df

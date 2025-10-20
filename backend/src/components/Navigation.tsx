@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
 import { Menu, X, Leaf, User, Gift, MapPin, LogOut } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
 import { toast } from 'sonner';
