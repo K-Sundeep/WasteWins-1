@@ -1,34 +1,43 @@
+import { CACHE_SETTINGS, EXTERNAL_APIS } from '../constants';
+
 export type LatLon = { lat: number; lon: number };
 
-import { hasGoogle, geocodeAddressGoogle, routeDistanceKmGoogle } from '../lib/google';
-
-const FREE_ONLY = String(((import.meta as any)?.env?.VITE_FREE_ONLY_MODE) ?? '').toLowerCase() === 'true';
-
-const cache = new Map<string, number>(); // session cache
-const LS_PREFIX = 'ww_dist_cache_';
+// Session and persistent cache
+const cache = new Map<string, number>();
 
 function cacheGet(key: string): number | null {
+  // Check session cache first
   if (cache.has(key)) return cache.get(key)!;
+  
+  // Check localStorage
   try {
-    const s = localStorage.getItem(LS_PREFIX + key);
-    if (!s) return null;
-    const v = Number(s);
-    if (Number.isFinite(v)) {
-      cache.set(key, v);
-      return v;
+    const stored = localStorage.getItem(CACHE_SETTINGS.DISTANCE_CACHE_PREFIX + key);
+    if (!stored) return null;
+    
+    const value = Number(stored);
+    if (Number.isFinite(value) && value > 0) {
+      cache.set(key, value);
+      return value;
     }
-  } catch {}
+  } catch (e) {
+    console.warn('Cache read error:', e);
+  }
   return null;
 }
 
 function cacheSet(key: string, km: number) {
+  if (!Number.isFinite(km) || km <= 0) return;
+  
   cache.set(key, km);
-  try { localStorage.setItem(LS_PREFIX + key, String(km)); } catch {}
+  try {
+    localStorage.setItem(CACHE_SETTINGS.DISTANCE_CACHE_PREFIX + key, String(km));
+  } catch (e) {
+    console.warn('Cache write error:', e);
+  }
 }
 
 // Estimate driving distance (km) between origin coords and a destination address.
-// Primary: Google Geocoding + Directions (if API key present)
-// Fallback: Nominatim + OSRM demo
+// Uses free APIs: Nominatim for geocoding + OSRM for routing
 export async function estimateDistanceKm(origin: LatLon, destinationAddress: string): Promise<number | null> {
   try {
     const addr = destinationAddress?.trim();
@@ -37,19 +46,7 @@ export async function estimateDistanceKm(origin: LatLon, destinationAddress: str
     const cached = cacheGet(cacheKey);
     if (cached !== null) return cached;
 
-    // Try Google first if available
-    if (!FREE_ONLY && hasGoogle()) {
-      const gDest = await geocodeAddressGoogle(addr);
-      if (gDest) {
-        const gKm = await routeDistanceKmGoogle(origin, gDest);
-        if (gKm && isFinite(gKm)) {
-          cacheSet(cacheKey, gKm);
-          return gKm;
-        }
-      }
-    }
-
-    // Fallback: Nominatim geocoding
+    // Nominatim geocoding
     const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`;
     const geoRes = await fetch(geoUrl, {
       headers: {
@@ -84,20 +81,24 @@ export async function estimateDistanceKm(origin: LatLon, destinationAddress: str
 // Estimate driving distance (km) directly between two coordinates
 export async function estimateDistanceKmBetween(origin: LatLon, dest: LatLon): Promise<number | null> {
   try {
-    // Try Google first
-    if (!FREE_ONLY && hasGoogle()) {
-      const gKm = await routeDistanceKmGoogle(origin, dest);
-      if (gKm && isFinite(gKm)) return gKm;
-    }
-    // Fallback: OSRM demo
-    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${dest.lon},${dest.lat}?overview=false`;
+    const cacheKey = `${origin.lat},${origin.lon}|${dest.lat},${dest.lon}`;
+    const cached = cacheGet(cacheKey);
+    if (cached !== null) return cached;
+    
+    // Use OSRM for routing
+    const osrmUrl = `${EXTERNAL_APIS.OSRM}/route/v1/driving/${origin.lon},${origin.lat};${dest.lon},${dest.lat}?overview=false`;
     const routeRes = await fetch(osrmUrl);
     if (!routeRes.ok) return null;
+    
     const json = await routeRes.json();
     const meters = json?.routes?.[0]?.distance;
     if (!isFinite(meters)) return null;
-    return meters / 1000;
-  } catch {
+    
+    const km = meters / 1000;
+    cacheSet(cacheKey, km);
+    return km;
+  } catch (e) {
+    console.warn('Distance calculation error:', e);
     return null;
   }
 }

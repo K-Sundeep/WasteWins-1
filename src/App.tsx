@@ -1,3 +1,4 @@
+﻿import { useEffect } from 'react';
 import { Navigation } from './components/Navigation';
 import { Hero } from './components/Hero';
 import { QuickDonate } from './components/QuickDonate';
@@ -10,11 +11,16 @@ import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import { AuthProvider } from './components/AuthProvider';
 import { useAuth } from './components/AuthProvider';
-import { Analytics } from "@vercel/analytics/react"; // use 'react' for Vite/CRA, 'next' for Next.js
-
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Analytics } from "@vercel/analytics/react";
+import { validateEnv } from './utils/env';
 
 function AppContent() {
   const { user } = useAuth();
+
+  useEffect(() => {
+    validateEnv();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,9 +42,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-      <Analytics />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+        <Analytics />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthProvider';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
 
-const API_BASE_URL = `https://${projectId}.supabase.co/functions/v1/make-server-84fed428`;
+// New Express.js backend URL
+// For development: http://localhost:5000/api/v1
+// For production: Update this to your deployed backend URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 interface ApiOptions {
   method?: string;
@@ -22,8 +24,6 @@ export function useApi() {
 
     if (requireAuth && session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
-    } else if (!requireAuth) {
-      headers['Authorization'] = `Bearer ${publicAnonKey}`;
     }
 
     const config: RequestInit = {
@@ -40,7 +40,7 @@ export function useApi() {
       const data = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`);
+        throw new Error(data.error || data.message || `HTTP ${response.status}`);
       }
       
       return { data, error: null };
@@ -56,9 +56,9 @@ export function useApi() {
 export function useUserProfile() {
   const { user } = useAuth();
   const { apiCall } = useApi();
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -105,9 +105,9 @@ export function useUserProfile() {
 export function useDonations() {
   const { user } = useAuth();
   const { apiCall } = useApi();
-  const [donations, setDonations] = useState([]);
+  const [donations, setDonations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchDonations = async () => {
     if (!user) return;
@@ -153,9 +153,9 @@ export function useDonations() {
 
 export function useRewards() {
   const { apiCall } = useApi();
-  const [rewards, setRewards] = useState([]);
+  const [rewards, setRewards] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRewards = async () => {
     setLoading(true);
@@ -190,9 +190,9 @@ export function useRewards() {
 
 export function useCommunityImpact() {
   const { apiCall } = useApi();
-  const [impact, setImpact] = useState(null);
+  const [impact, setImpact] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchImpact = async () => {
     setLoading(true);
@@ -212,6 +212,41 @@ export function useCommunityImpact() {
   useEffect(() => {
     fetchImpact();
   }, []);
+
+  return { impact, loading, error, refetch: fetchImpact };
+}
+
+export function usePersonalImpact() {
+  const { user } = useAuth();
+  const { apiCall } = useApi();
+  const [impact, setImpact] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchImpact = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    const { data, error: apiError } = await apiCall('/impact/personal', { requireAuth: true });
+    
+    if (apiError) {
+      setError(apiError);
+    } else {
+      setImpact(data);
+    }
+    
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchImpact();
+    } else {
+      setImpact(null);
+    }
+  }, [user]);
 
   return { impact, loading, error, refetch: fetchImpact };
 }

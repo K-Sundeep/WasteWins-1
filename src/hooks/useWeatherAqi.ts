@@ -1,13 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { EXTERNAL_APIS, CACHE_SETTINGS } from '../constants';
 
 interface WeatherData {
   temperatureC?: number;
-  precipitationProb?: number; // next-hour or daily probability
+  precipitationProb?: number;
   summary?: string;
 }
 
 interface AqiData {
-  aqi?: number; // PM2.5 µg/m³ or AQI-like index (OpenAQ returns concentration; we'll map simply)
+  aqi?: number;
   category?: 'Good' | 'Moderate' | 'Unhealthy' | 'Very Unhealthy' | 'Hazardous' | 'Unknown';
 }
 
@@ -20,65 +21,126 @@ function categorizeAQI(pm25?: number): AqiData['category'] {
   return 'Hazardous';
 }
 
+// Simple cache for weather data
+const weatherCache = new Map<string, { data: WeatherData; timestamp: number }>();
+const aqiCache = new Map<string, { data: AqiData; timestamp: number }>();
+
 export function useWeatherAqi() {
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [aqi, setAqi] = useState<AqiData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Get user's geolocation
   useEffect(() => {
     if (!('geolocation' in navigator)) return;
+
+    const geoOptions: PositionOptions = {
+      enableHighAccuracy: false,
+      timeout: 5000,
+      maximumAge: 300000, // Cache for 5 minutes
+    };
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setCoords({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+        });
       },
       () => {
-        // silently ignore if blocked
+        // Silently ignore - weather/AQI is optional
       },
-      { enableHighAccuracy: false, timeout: 5000 }
+      geoOptions
     );
   }, []);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      if (!coords) return;
-      setLoading(true);
+  // Fetch weather and AQI data
+  const fetchAll = useCallback(async () => {
+    if (!coords) return;
 
-      // Open-Meteo: current weather + precipitation probability
-      // Docs: https://open-meteo.com/en/docs
-      try {
-        const wUrl = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m&hourly=precipitation_probability`;
-        const wRes = await fetch(wUrl);
+    setLoading(true);
+    setError(null);
+
+    const cacheKey = `${Math.round(coords.lat * 100)},${Math.round(coords.lon * 100)}`;
+    const now = Date.now();
+
+    try {
+      // Check weather cache
+      const cachedWeather = weatherCache.get(cacheKey);
+      if (cachedWeather && now - cachedWeather.timestamp < CACHE_SETTINGS.WEATHER_CACHE_TTL_MS) {
+        setWeather(cachedWeather.data);
+      } else {
+        // Fetch from Open-Meteo
+        const wUrl = `${EXTERNAL_APIS.OPEN_METEO}?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m&hourly=precipitation_probability`;
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const wRes = await fetch(wUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (wRes.ok) {
           const w = await wRes.json();
-          const temperatureC = w?.current?.temperature_2m;
-          const nextHourIndex = 0;
-          const precipitationProb = Array.isArray(w?.hourly?.precipitation_probability)
-            ? w.hourly.precipitation_probability[nextHourIndex]
-            : undefined;
-          setWeather({ temperatureC, precipitationProb, summary: undefined });
+          const weatherData: WeatherData = {
+            temperatureC: w?.current?.temperature_2m,
+            precipitationProb: Array.isArray(w?.hourly?.precipitation_probability)
+              ? w.hourly.precipitation_probability[0]
+              : undefined,
+            summary: undefined,
+          };
+          setWeather(weatherData);
+          weatherCache.set(cacheKey, { data: weatherData, timestamp: now });
         }
-      } catch {}
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        console.warn('Weather fetch failed:', e.message);
+      }
+    }
 
-      // OpenAQ: nearest PM2.5
-      // Docs: https://docs.openaq.org/
-      try {
-        const aUrl = `https://api.openaq.org/v2/measurements?coordinates=${coords.lat},${coords.lon}&radius=10000&limit=1&parameter=pm25&order_by=datetime&sort=desc`;
-        const aRes = await fetch(aUrl);
+    try {
+      // Check AQI cache
+      const cachedAqi = aqiCache.get(cacheKey);
+      if (cachedAqi && now - cachedAqi.timestamp < CACHE_SETTINGS.WEATHER_CACHE_TTL_MS) {
+        setAqi(cachedAqi.data);
+      } else {
+        // Fetch from OpenAQ
+        const aUrl = `${EXTERNAL_APIS.OPEN_AQ}?coordinates=${coords.lat},${coords.lon}&radius=10000&limit=1&parameter=pm25&order_by=datetime&sort=desc`;
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const aRes = await fetch(aUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (aRes.ok) {
           const a = await aRes.json();
           const pm25 = a?.results?.[0]?.value as number | undefined;
-          setAqi({ aqi: pm25, category: categorizeAQI(pm25) });
+          const aqiData: AqiData = {
+            aqi: pm25,
+            category: categorizeAQI(pm25),
+          };
+          setAqi(aqiData);
+          aqiCache.set(cacheKey, { data: aqiData, timestamp: now });
         }
-      } catch {}
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        console.warn('AQI fetch failed:', e.message);
+      }
+    }
 
-      setLoading(false);
-    };
-
-    fetchAll();
+    setLoading(false);
   }, [coords]);
 
-  const info = useMemo(() => ({ coords, weather, aqi, loading }), [coords, weather, aqi, loading]);
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
 
-  return info;
+  return useMemo(
+    () => ({ coords, weather, aqi, loading, error, refetch: fetchAll }),
+    [coords, weather, aqi, loading, error, fetchAll]
+  );
 }

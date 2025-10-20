@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -6,21 +6,24 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
-import { Calendar, Camera, MapPin, Weight, Clock, Loader2 } from 'lucide-react';
+import { Calendar, Camera, MapPin, Weight, Clock, Loader2, Navigation } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
-import { useDonations, useUserProfile } from '../hooks/useApi';
+import { useDonations, useUserProfile, usePersonalImpact, useCommunityImpact } from '../hooks/useApi';
 import { toast } from 'sonner';
 import { useWeatherAqi } from '../hooks/useWeatherAqi';
 import { useCarbon } from '../hooks/useCarbon';
 import { estimateDistanceKm, estimateDistanceKmBetween } from '../hooks/useDistance';
 import { useOpenDataRecycling } from '../hooks/useOpenData';
 import { usePlacesAutocomplete } from '../hooks/usePlaces';
+import { DistanceEstimator, DistanceBadge } from './DistanceEstimator';
 
 export function QuickDonate() {
   const { user } = useAuth();
-  const { createDonation } = useDonations();
+  const { createDonation, refetch: refetchDonations } = useDonations();
   const { refetch: refetchProfile } = useUserProfile();
+  const { refetch: refetchPersonalImpact } = usePersonalImpact();
+  const { refetch: refetchCommunityImpact } = useCommunityImpact();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   
   const [loading, setLoading] = useState(false);
@@ -35,16 +38,106 @@ export function QuickDonate() {
   const [destCoords, setDestCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [timeSlot, setTimeSlot] = useState('');
   const [items, setItems] = useState('');
-  const [distanceKm, setDistanceKm] = useState('');
-  const { coords } = useOpenDataRecycling(5000);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [addressCoords, setAddressCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const { sites, loading: locationsLoading } = useOpenDataRecycling(50000, addressCoords); // 50km radius
+  const [enrichedLocations, setEnrichedLocations] = useState<any[]>([]);
   usePlacesAutocomplete(addressRef, (p) => {
     setAddress(p.address);
     if (Number.isFinite(p.lat) && Number.isFinite(p.lon)) {
       setDestCoords({ lat: p.lat, lon: p.lon });
+      setAddressCoords({ lat: p.lat, lon: p.lon });
     } else {
       setDestCoords(null);
+      setAddressCoords(null);
     }
   });
+  
+  // Geocode address if not already geocoded
+  useEffect(() => {
+    const geocodeAddress = async () => {
+      if (!address || address.length < 5 || addressCoords) {
+        return;
+      }
+      
+      try {
+        // Use Nominatim to geocode the address
+        const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+        const geoRes = await fetch(geoUrl, {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'WasteWins-App/1.0'
+          }
+        });
+        
+        if (geoRes.ok) {
+          const geoJson = await geoRes.json();
+          const first = Array.isArray(geoJson) && geoJson.length > 0 ? geoJson[0] : null;
+          if (first) {
+            const lat = parseFloat(first.lat);
+            const lon = parseFloat(first.lon);
+            if (isFinite(lat) && isFinite(lon)) {
+              setAddressCoords({ lat, lon });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Geocoding error:', error);
+      }
+    };
+    
+    // Debounce geocoding
+    const timer = setTimeout(geocodeAddress, 1500);
+    return () => clearTimeout(timer);
+  }, [address, addressCoords]);
+  
+  // Calculate distances for all nearby locations based on pickup address
+  useEffect(() => {
+    const enrichLocations = async () => {
+      if (!sites || !addressCoords) {
+        setEnrichedLocations([]);
+        return;
+      }
+      
+      const enrichedPromises = sites.map(async (site: any) => {
+        // Calculate distance from pickup address to donation center
+        let distance: number;
+        const mapboxDist = await estimateDistanceKmBetween(addressCoords, { lat: site.lat, lon: site.lon });
+        distance = mapboxDist ?? ((lat1: number, lon1: number, lat2: number, lon2: number) => {
+          const R = 6371;
+          const dLat = (lat2 - lat1) * Math.PI / 180;
+          const dLon = (lon2 - lon1) * Math.PI / 180;
+          const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          return R * c;
+        })(addressCoords.lat, addressCoords.lon, site.lat, site.lon);
+        
+        // Extract services
+        const services: string[] = [];
+        if (site.tags?.['recycling:clothes'] === 'yes') services.push('Clothes');
+        if (site.tags?.['recycling:paper'] === 'yes') services.push('Paper');
+        if (site.tags?.['recycling:plastic'] === 'yes') services.push('Plastic');
+        if (site.tags?.['recycling:books'] === 'yes') services.push('Books');
+        if (services.length === 0) services.push('General Recycling');
+        
+        return {
+          ...site,
+          distance,
+          services,
+          travelTime: Math.round((distance / 30) * 60), // minutes
+        };
+      });
+      
+      const enriched = await Promise.all(enrichedPromises);
+      enriched.sort((a, b) => a.distance - b.distance);
+      setEnrichedLocations(enriched);
+    };
+    
+    enrichLocations();
+  }, [sites, addressCoords]);
 
   const categories = [
     { id: 'clothes', name: 'Clothes', icon: '👕', points: '10-50 pts/kg' },
@@ -65,8 +158,8 @@ export function QuickDonate() {
       return;
     }
 
-    if (!selectedCategory || !weight || !address || !items || !timeSlot) {
-      toast.error('Please fill in all required fields');
+    if (!selectedCategory || !weight || !address || !items || !timeSlot || !selectedLocation) {
+      toast.error('Please fill in all required fields including donation location');
       return;
     }
 
@@ -79,6 +172,8 @@ export function QuickDonate() {
       pickupType: 'pickup',
       address,
       timeSlot,
+      donationLocation: selectedLocation.name || 'Recycling Center',
+      distanceKm: selectedLocation.distance,
     };
 
     const { data, error } = await createDonation(donationData);
@@ -88,24 +183,11 @@ export function QuickDonate() {
     } else {
       // Calculate points earned
       const estimatedPoints = Math.round(Number(weight) * 20);
-      // Estimate CO2 saved (best-effort)
-      let co2Note = '';
-      try {
-        let dist = distanceKm ? parseFloat(distanceKm) : defaultDistanceKm;
-        // Prefer coordinate-based routing if we have both origin and destination
-        if (!distanceKm && coords && destCoords) {
-          const gKm = await estimateDistanceKmBetween({ lat: coords.lat, lon: coords.lon }, destCoords);
-          if (gKm && isFinite(gKm)) dist = gKm;
-        } else if (!distanceKm && coords) {
-          // Fallback to address-based estimation
-          const autoKm = await estimateDistanceKm({ lat: coords.lat, lon: coords.lon }, address);
-          if (autoKm && isFinite(autoKm)) dist = autoKm;
-        }
-        const co2 = await estimate({ category: selectedCategory, weightKg: parseFloat(weight), distanceKm: dist });
-        if (co2 && co2.co2kg > 0) {
-          co2Note = ` • Estimated CO₂ saved: ~${co2.co2kg.toFixed(1)} kg` + (co2.source === 'fallback' ? ' (source: fallback)' : '') + ` • distance: ${dist.toFixed(1)} km`;
-        }
-      } catch {}
+      // Calculate CO2 impact
+      const co2Saved = parseFloat(weight) * 0.61;
+      const co2Travel = selectedLocation.distance * 0.12;
+      const netImpact = co2Saved - co2Travel;
+      const co2Note = ` • CO₂ saved: ${co2Saved.toFixed(2)} kg • Travel: ${co2Travel.toFixed(2)} kg • Net: +${netImpact.toFixed(2)} kg`;
 
       toast.success(
         `🎉 Donation scheduled successfully! You've earned ${estimatedPoints} reward points!${co2Note}`, 
@@ -125,8 +207,25 @@ export function QuickDonate() {
       setItems('');
       setAddress('');
       setTimeSlot('');
-      // Refresh user profile to update points
-      refetchProfile();
+      setSelectedLocation(null);
+      
+      // Dispatch event to notify other components
+      window.dispatchEvent(new Event('donationComplete'));
+      
+      // Refresh all data to show updated impact
+      // Add delay to ensure backend has processed the donation
+      setTimeout(async () => {
+        await refetchProfile();
+        await refetchDonations();
+        await refetchPersonalImpact();
+        await refetchCommunityImpact();
+        
+        // Scroll to impact section
+        const impactSection = document.getElementById('impact');
+        if (impactSection) {
+          impactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 500);
     }
     
     setLoading(false);
@@ -240,23 +339,168 @@ export function QuickDonate() {
                   />
                 </div>
 
-                {/* Optional Distance */}
-                <div className="space-y-2">
-                  <Label htmlFor="distanceKm" className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>Estimated Pickup Distance (km)</span>
-                  </Label>
-                  <Input
-                    id="distanceKm"
-                    type="number"
-                    step="0.1"
-                    placeholder={`${defaultDistanceKm}`}
-                    value={distanceKm}
-                    onChange={(e) => setDistanceKm(e.target.value)}
-                  />
-                  <div className="text-xs text-muted-foreground">
-                    Leave blank to use default {defaultDistanceKm} km.
+                {/* Where to Donate Section */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center space-x-2 text-base font-semibold">
+                      <MapPin className="w-5 h-5 text-primary" />
+                      <span>Where to Donate *</span>
+                    </Label>
+                    {enrichedLocations.length > 0 && (
+                      <Badge className="bg-blue-100 text-blue-800">
+                        {enrichedLocations.length} locations nearby
+                      </Badge>
+                    )}
                   </div>
+
+                  {!address || address.length < 5 ? (
+                    <Card className="border-2 border-blue-200 bg-blue-50">
+                      <CardContent className="p-6 text-center space-y-2">
+                        <div className="text-4xl">⬆️</div>
+                        <p className="font-medium">Enter your pickup address first</p>
+                        <p className="text-sm text-muted-foreground">
+                          We'll find donation centers near your pickup location
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ) : locationsLoading || !addressCoords ? (
+                    <div className="flex items-center justify-center py-8 bg-muted/30 rounded-lg">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        {!addressCoords ? 'Locating your address...' : 'Finding nearby locations...'}
+                      </span>
+                    </div>
+                  ) : enrichedLocations.length === 0 ? (
+                    <Card className="border-2 border-blue-200 bg-blue-50">
+                      <CardContent className="p-6 space-y-4">
+                        <div className="flex items-center justify-center">
+                          <div className="text-5xl">🔍</div>
+                        </div>
+                        <div className="text-center space-y-2">
+                          <h3 className="font-semibold text-lg">No Recycling Centers Found</h3>
+                          <p className="text-sm text-muted-foreground">
+                            We couldn't find any recycling centers within 50km of your pickup address.
+                          </p>
+                          {addressCoords && (
+                            <p className="text-xs text-muted-foreground">
+                              Searching near: {addressCoords.lat.toFixed(4)}, {addressCoords.lon.toFixed(4)}
+                            </p>
+                          )}
+                        </div>
+                        <div className="bg-white rounded-lg p-4 space-y-2 text-sm">
+                          <p className="font-medium">What you can do:</p>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            <li>Try entering a different address or nearby city</li>
+                            <li>We search within 50km radius - try major cities</li>
+                            <li>Contact us to add recycling centers in your area</li>
+                            <li>Check back later as we're constantly adding new locations</li>
+                          </ul>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            onClick={() => window.location.reload()} 
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Try Again
+                          </Button>
+                          <Button 
+                            variant="default"
+                            className="flex-1"
+                            onClick={() => {
+                              const section = document.getElementById('quick-donate');
+                              if (section) {
+                                section.scrollIntoView({ behavior: 'smooth' });
+                              }
+                            }}
+                          >
+                            Contact Support
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">
+                        Select a donation center (sorted by distance from your pickup address):
+                      </p>
+                      
+                      {/* Top 5 Closest Locations */}
+                      <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto">
+                        {enrichedLocations.slice(0, 10).map((location) => (
+                          <motion.div
+                            key={location.id}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            <Card
+                              className={`cursor-pointer transition-all ${
+                                selectedLocation?.id === location.id
+                                  ? 'border-2 border-primary bg-primary/5'
+                                  : 'border hover:border-primary/50'
+                              }`}
+                              onClick={() => {
+                                setSelectedLocation(location);
+                                setShowLocationSuggestions(false);
+                              }}
+                            >
+                              <CardContent className="p-4">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-2 mb-2">
+                                      <h4 className="font-semibold text-sm">
+                                        {location.name || 'Recycling Center'}
+                                      </h4>
+                                      {location.distance < 2 && (
+                                        <Badge className="bg-green-100 text-green-800 text-xs">
+                                          Very Close!
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    
+                                    {location.tags?.operator && (
+                                      <p className="text-xs text-muted-foreground mb-2">
+                                        Operator: {location.tags.operator}
+                                      </p>
+                                    )}
+                                    
+                                    <div className="flex flex-wrap gap-1 mb-2">
+                                      {location.services.slice(0, 4).map((service: string) => (
+                                        <Badge key={service} variant="outline" className="text-xs">
+                                          {service}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="ml-4">
+                                    <DistanceBadge distanceKm={location.distance} showTime={true} />
+                                  </div>
+                                </div>
+                                
+                                {/* Distance Estimator for selected location */}
+                                {selectedLocation?.id === location.id && weight && parseFloat(weight) > 0 && (
+                                  <div className="mt-4 pt-4 border-t">
+                                    <DistanceEstimator 
+                                      distanceKm={location.distance} 
+                                      weight={parseFloat(weight)}
+                                      showDetails={true}
+                                    />
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </motion.div>
+                        ))}
+                      </div>
+                      
+                      {enrichedLocations.length > 10 && (
+                        <p className="text-xs text-center text-muted-foreground">
+                          Showing closest 10 locations out of {enrichedLocations.length} found
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">
