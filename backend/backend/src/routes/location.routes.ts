@@ -1,10 +1,10 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { asyncHandler } from '../middleware/errorHandler';
 
 const router = Router();
 
 // Calculate distance between two points
-router.post('/distance', asyncHandler(async (req, res) => {
+router.post('/distance', asyncHandler(async (req: Request, res: Response) => {
   const { origin, destination } = req.body;
   
   if (!origin?.lat || !origin?.lon || !destination?.lat || !destination?.lon) {
@@ -21,7 +21,7 @@ router.post('/distance', asyncHandler(async (req, res) => {
       const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${destination.lon},${destination.lat}?overview=false`;
       const response = await fetch(osrmUrl);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         const meters = data?.routes?.[0]?.distance;
         if (meters) {
           routingDistance = meters / 1000; // Convert to km
@@ -43,7 +43,7 @@ router.post('/distance', asyncHandler(async (req, res) => {
 }));
 
 // Get nearby pickup locations
-router.post('/pickup-sites', asyncHandler(async (req, res) => {
+router.post('/pickup-sites', asyncHandler(async (req: Request, res: Response) => {
   const { lat, lon, radius = 10000 } = req.body;
   
   if (!lat || !lon) {
@@ -101,10 +101,10 @@ router.post('/pickup-sites', asyncHandler(async (req, res) => {
       );out center 20;`;
       
       const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-      const response = await fetch(overpassUrl, { timeout: 8000 });
+      const response = await fetch(overpassUrl);
       
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as any;
         realSites = data.elements?.map((element: any) => ({
           id: element.id.toString(),
           name: element.tags?.name || 'Recycling Point',
@@ -136,7 +136,7 @@ router.post('/pickup-sites', asyncHandler(async (req, res) => {
 }));
 
 // Geocode address to coordinates
-router.post('/geocode', asyncHandler(async (req, res) => {
+router.post('/geocode', asyncHandler(async (req: Request, res: Response) => {
   const { address } = req.body;
   
   if (!address) {
@@ -155,7 +155,7 @@ router.post('/geocode', asyncHandler(async (req, res) => {
       throw new Error('Geocoding service unavailable');
     }
 
-    const data = await response.json();
+    const data = await response.json() as any[];
     const result = data[0];
 
     if (!result) {
