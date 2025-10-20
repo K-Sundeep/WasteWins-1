@@ -75,11 +75,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const apiUrl = `${API_BASE_URL}/auth/signin`;
       console.log('🔐 Attempting sign in to:', apiUrl);
-      console.log('📧 Email:', email);
-      console.log('🔑 Password length:', password.length);
-      
-      // Add detailed logging for mobile debugging
-      alert(`Trying to connect to: ${apiUrl}`);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -96,9 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const errorText = await response.text();
         console.error('❌ Sign in failed:', response.status, errorText);
         
-        // Show detailed error to user for debugging
-        alert(`Sign-in failed: Status ${response.status}\nResponse: ${errorText}`);
-        
         if (response.status === 404) {
           return { error: `Cannot find API endpoint: ${apiUrl}` };
         }
@@ -114,9 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await response.json();
       console.log('✅ Sign in successful, user:', data.user);
       
-      // Show success message
-      alert(`Sign-in successful! Welcome ${data.user.name}`);
-      
       // Use access_token to match the API client's expectation
       const session = { access_token: data.token, user: data.user };
       localStorage.setItem('session', JSON.stringify(session));
@@ -126,9 +115,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null };
     } catch (error) {
       console.error('❌ Sign in error:', error);
-      
-      // Show detailed error for debugging
-      alert(`Network error: ${error instanceof Error ? error.message : String(error)}`);
       
       if (error instanceof TypeError && error.message.includes('fetch')) {
         return { error: `Cannot connect to server: ${API_BASE_URL}. Check network connection.` };
@@ -144,9 +130,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('📝 Attempting signup to:', apiUrl);
       console.log('👤 User data:', { email, name });
       
-      // Add detailed logging for mobile debugging
-      alert(`Trying to signup at: ${apiUrl}`);
-      
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -160,9 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Signup failed:', response.status, errorText);
-        
-        // Show detailed error to user for debugging
-        alert(`Signup failed: Status ${response.status}\nResponse: ${errorText}`);
         
         try {
           const errorData = JSON.parse(errorText);

@@ -4,6 +4,7 @@ import userRoutes from './user.routes';
 import donationRoutes from './donation.routes';
 import rewardRoutes from './reward.routes';
 import impactRoutes from './impact.routes';
+import locationRoutes from './location.routes';
 
 const router = Router();
 
@@ -19,7 +20,8 @@ router.get('/', (req, res) => {
       users: '/api/v1/users',
       donations: '/api/v1/donations',
       rewards: '/api/v1/rewards',
-      impact: '/api/v1/impact'
+      impact: '/api/v1/impact',
+      location: '/api/v1/location'
     },
     documentation: 'https://wastewins-1.onrender.com/health'
   });
@@ -32,5 +34,6 @@ router.use('/users', userRoutes); // Alias for user
 router.use('/donations', donationRoutes);
 router.use('/rewards', rewardRoutes);
 router.use('/impact', impactRoutes);
+router.use('/location', locationRoutes);
 
 export default router;

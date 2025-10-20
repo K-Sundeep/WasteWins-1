@@ -8,6 +8,7 @@ import { MapPin, Clock, Phone, Star, Search, Navigation, Loader2, TrendingUp, Fi
 import { motion } from 'framer-motion';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { useOpenDataRecycling, type RecyclingSite } from '../hooks/useOpenData';
+import { locationApi } from '../services/locationApi';
 import { haversineDistance, formatDistance } from '../utils/distance';
 import { routeDistanceKmMapbox, hasMapbox } from '../lib/mapbox';
 import { searchCities, type City } from '../utils/cities';

@@ -1,4 +1,5 @@
-import { CACHE_SETTINGS, EXTERNAL_APIS } from '../constants';
+import { CACHE_SETTINGS } from '../constants';
+import { locationApi, type LocationPoint } from '../services/locationApi';
 
 export type LatLon = { lat: number; lon: number };
 
@@ -85,16 +86,11 @@ export async function estimateDistanceKmBetween(origin: LatLon, dest: LatLon): P
     const cached = cacheGet(cacheKey);
     if (cached !== null) return cached;
     
-    // Use OSRM for routing
-    const osrmUrl = `${EXTERNAL_APIS.OSRM}/route/v1/driving/${origin.lon},${origin.lat};${dest.lon},${dest.lat}?overview=false`;
-    const routeRes = await fetch(osrmUrl);
-    if (!routeRes.ok) return null;
+    // Use our backend API for distance calculation
+    const result = await locationApi.calculateDistance(origin, dest);
+    if (!result) return null;
     
-    const json = await routeRes.json();
-    const meters = json?.routes?.[0]?.distance;
-    if (!isFinite(meters)) return null;
-    
-    const km = meters / 1000;
+    const km = result.distance;
     cacheSet(cacheKey, km);
     return km;
   } catch (e) {
