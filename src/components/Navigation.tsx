@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Menu, X, Leaf, User, Gift, MapPin, LogOut } from 'lucide-react';
+import { Menu, X, Leaf, User, Gift, MapPin, LogOut, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
@@ -79,8 +79,15 @@ export function Navigation() {
               <div className="flex items-center space-x-4">
                 <div className="text-sm">
                   <span className="text-muted-foreground">Welcome, </span>
-                  <span className="font-medium">{user.user_metadata?.name || user.email}</span>
+                  <span className="font-medium">{(user as any).user_metadata?.name || user.email}</span>
                 </div>
+                {/* Admin Dashboard Link */}
+                {(user.email === 'admin@wastewins.com' || (user as any)?.role === 'admin') && (
+                  <Button variant="ghost" size="sm" onClick={() => window.location.href = '/admin'} className="space-x-2">
+                    <BarChart3 className="w-4 h-4" />
+                    <span>Analytics</span>
+                  </Button>
+                )}
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="space-x-2">
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
@@ -138,7 +145,7 @@ export function Navigation() {
                     <>
                       <div className="px-3 py-2 text-sm">
                         <span className="text-muted-foreground">Welcome, </span>
-                        <span className="font-medium">{user.user_metadata?.name || user.email}</span>
+                        <span className="font-medium">{(user as any).user_metadata?.name || user.email}</span>
                       </div>
                       <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full justify-start space-x-2">
                         <LogOut className="w-4 h-4" />

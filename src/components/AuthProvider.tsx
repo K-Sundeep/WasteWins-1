@@ -73,7 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+      const apiUrl = `${API_BASE_URL}/auth/signin`;
+      console.log('🔐 Attempting sign in to:', apiUrl);
+      console.log('📧 Email:', email);
+      console.log('🔑 Password length:', password.length);
+      
+      // Add detailed logging for mobile debugging
+      alert(`Trying to connect to: ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,12 +89,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      console.log('📊 Response status:', response.status);
+      console.log('📊 Response headers:', response.headers);
       
       if (!response.ok) {
-        return { error: data.error || 'Login failed' };
+        const errorText = await response.text();
+        console.error('❌ Sign in failed:', response.status, errorText);
+        
+        // Show detailed error to user for debugging
+        alert(`Sign-in failed: Status ${response.status}\nResponse: ${errorText}`);
+        
+        if (response.status === 404) {
+          return { error: `Cannot find API endpoint: ${apiUrl}` };
+        }
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          return { error: errorData.error || `Server error: ${response.status}` };
+        } catch {
+          return { error: `Server error: ${response.status} - ${errorText}` };
+        }
       }
 
+      const data = await response.json();
+      console.log('✅ Sign in successful, user:', data.user);
+      
+      // Show success message
+      alert(`Sign-in successful! Welcome ${data.user.name}`);
+      
       // Use access_token to match the API client's expectation
       const session = { access_token: data.token, user: data.user };
       localStorage.setItem('session', JSON.stringify(session));
@@ -95,15 +125,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       return { error: null };
     } catch (error) {
-      console.error('Sign in error:', error);
-      return { error: error instanceof Error ? error.message : 'Unknown error' };
+      console.error('❌ Sign in error:', error);
+      
+      // Show detailed error for debugging
+      alert(`Network error: ${error instanceof Error ? error.message : String(error)}`);
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return { error: `Cannot connect to server: ${API_BASE_URL}. Check network connection.` };
+      }
+      
+      return { error: error instanceof Error ? error.message : 'Unknown network error' };
     }
   };
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      console.log('Attempting signup with:', { email, name });
-      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+      const apiUrl = `${API_BASE_URL}/auth/signup`;
+      console.log('📝 Attempting signup to:', apiUrl);
+      console.log('👤 User data:', { email, name });
+      
+      // Add detailed logging for mobile debugging
+      alert(`Trying to signup at: ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,14 +155,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password, name }),
       });
 
-      const data = await response.json();
-      console.log('Signup response:', { status: response.status, data });
+      console.log('📊 Signup response status:', response.status);
       
       if (!response.ok) {
-        const errorMessage = data.error || data.message || 'Signup failed';
-        console.error('Signup failed:', errorMessage);
-        return { error: errorMessage };
+        const errorText = await response.text();
+        console.error('❌ Signup failed:', response.status, errorText);
+        
+        // Show detailed error to user for debugging
+        alert(`Signup failed: Status ${response.status}\nResponse: ${errorText}`);
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          return { error: errorData.error || `Signup error: ${response.status}` };
+        } catch {
+          return { error: `Signup error: ${response.status} - ${errorText}` };
+        }
       }
+
+      const data = await response.json();
+      console.log('✅ Signup successful:', data.user);
 
       // If we have a token in the response, use it directly
       if (data.token && data.user) {

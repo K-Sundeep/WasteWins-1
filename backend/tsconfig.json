@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-<<<<<<< HEAD
     "target": "ES2022",
     "module": "commonjs",
     "lib": ["ES2022"],
@@ -22,19 +21,4 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
-=======
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
-    "strict": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "types": ["vite/client"]
-  },
-  "include": ["src"]
->>>>>>> 99a3dcda63b03527070925f896e7a75fa70928df
 }

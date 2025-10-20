@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: wastewins-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"
+  
+  - type: pserv
+    name: wastewins-db
+    env: postgresql
+    plan: free
+    databaseName: wastewins
+    user: wastewins

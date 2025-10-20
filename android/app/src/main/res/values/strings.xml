@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name"> WasteWins</string>
+    <string name="title_activity_main"> WasteWins</string>
+    <string name="package_name">com.wastewins.com</string>
+    <string name="custom_url_scheme">com.wastewins.com</string>
+</resources>

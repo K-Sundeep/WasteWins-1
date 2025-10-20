@@ -7,6 +7,9 @@ import impactRoutes from './impact.routes';
 
 const router = Router();
 
+// Import analytics routes (JavaScript file)
+const analyticsRoutes = require('./analytics');
+
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
@@ -14,5 +17,6 @@ router.use('/users', userRoutes); // Alias for user
 router.use('/donations', donationRoutes);
 router.use('/rewards', rewardRoutes);
 router.use('/impact', impactRoutes);
+router.use('/analytics', analyticsRoutes);
 
 export default router;
