@@ -109,6 +109,11 @@ const startServer: StartServer = async () => {
     await connectDatabase();
     logger.info('Database connected successfully');
 
+    // Initialize database tables
+    const { initializeDatabase } = await import('./config/initDatabase');
+    await initializeDatabase();
+    logger.info('Database tables initialized');
+
     // Connect to Redis (optional)
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {
       try {
