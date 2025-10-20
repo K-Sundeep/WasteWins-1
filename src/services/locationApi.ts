@@ -112,6 +112,11 @@ class LocationApiService {
     }
   }
 
+  // Alias for backward compatibility
+  async getPickupSites(lat: number, lon: number, radius: number = 10000): Promise<PickupSitesResult | null> {
+    return this.getNearbyPickupSites(lat, lon, radius);
+  }
+
   // Fallback Haversine distance calculation
   private calculateHaversineDistance(point1: LocationPoint, point2: LocationPoint): number {
     const R = 6371; // Earth's radius in kilometers

@@ -38,7 +38,7 @@ function cacheSet(key: string, km: number) {
 }
 
 // Estimate driving distance (km) between origin coords and a destination address.
-// Uses free APIs: Nominatim for geocoding + OSRM for routing
+// Uses backend API for geocoding and distance calculation
 export async function estimateDistanceKm(origin: LatLon, destinationAddress: string): Promise<number | null> {
   try {
     const addr = destinationAddress?.trim();
@@ -47,34 +47,44 @@ export async function estimateDistanceKm(origin: LatLon, destinationAddress: str
     const cached = cacheGet(cacheKey);
     if (cached !== null) return cached;
 
-    // Nominatim geocoding
-    const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`;
-    const geoRes = await fetch(geoUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'WasteWins-App/1.0 (distance estimation)'
-      }
-    });
-    if (!geoRes.ok) return null;
-    const geoJson = await geoRes.json();
-    const first = Array.isArray(geoJson) && geoJson.length > 0 ? geoJson[0] : null;
-    if (!first) return null;
-    const destLat = parseFloat(first.lat);
-    const destLon = parseFloat(first.lon);
-    if (!isFinite(destLat) || !isFinite(destLon)) return null;
+    // Use backend API for geocoding
+    const geocodeResult = await locationApi.geocodeAddress(addr);
+    if (!geocodeResult) {
+      // Fallback to direct geocoding if backend fails
+      const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`;
+      const geoRes = await fetch(geoUrl, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'WasteWins-App/1.0 (distance estimation)'
+        }
+      });
+      if (!geoRes.ok) return null;
+      const geoJson = await geoRes.json();
+      const first = Array.isArray(geoJson) && geoJson.length > 0 ? geoJson[0] : null;
+      if (!first) return null;
+      const destLat = parseFloat(first.lat);
+      const destLon = parseFloat(first.lon);
+      if (!isFinite(destLat) || !isFinite(destLon)) return null;
+      
+      // Use backend API for distance calculation
+      const distanceResult = await locationApi.calculateDistance(origin, { lat: destLat, lon: destLon });
+      if (!distanceResult) return null;
+      
+      const km = distanceResult.distance;
+      cacheSet(cacheKey, km);
+      return km;
+    }
 
-    // OSRM routing
-    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${origin.lon},${origin.lat};${destLon},${destLat}?overview=false`;
-    const routeRes = await fetch(osrmUrl);
-    if (!routeRes.ok) return null;
-    const routeJson = await routeRes.json();
-    const route = routeJson?.routes?.[0];
-    const meters = route?.distance;
-    if (!isFinite(meters)) return null;
-    const km = meters / 1000;
+    // Use backend API for distance calculation
+    const destination = { lat: geocodeResult.lat, lon: geocodeResult.lon };
+    const distanceResult = await locationApi.calculateDistance(origin, destination);
+    if (!distanceResult) return null;
+    
+    const km = distanceResult.distance;
     cacheSet(cacheKey, km);
     return km;
-  } catch {
+  } catch (e) {
+    console.warn('Distance estimation error:', e);
     return null;
   }
 }

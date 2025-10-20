@@ -33,6 +33,8 @@ export class DonationModel {
     pickup_type?: string;
     address?: string;
     time_slot?: string;
+    donation_location?: string;
+    distance_km?: number;
   }): Promise<Donation> {
     const id = `DON-${Date.now()}-${uuidv4().substring(0, 8)}`;
     

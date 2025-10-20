@@ -201,9 +201,21 @@ export function useCommunityImpact() {
     const { data, error: apiError } = await apiCall('/impact/community');
     
     if (apiError) {
-      setError(apiError);
+      console.warn('Community impact API error:', apiError);
+      // Provide fallback data for better UX
+      setImpact({
+        totalUsers: 1,
+        totalDonations: 0,
+        totalWeight: 0,
+        totalCarbonSaved: 0,
+        source: 'fallback'
+      });
+      setError(null); // Don't show error to user, use fallback
     } else {
-      setImpact(data);
+      setImpact({
+        ...data,
+        source: 'api'
+      });
     }
     
     setLoading(false);
