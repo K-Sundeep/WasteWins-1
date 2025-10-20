@@ -31,14 +31,14 @@ router.post('/distance', asyncHandler(async (req: Request, res: Response) => {
       console.warn('OSRM routing failed, using Haversine distance');
     }
 
-    res.json({
+    return res.json({
       distance: routingDistance || distance,
       method: routingDistance ? 'routing' : 'haversine',
       unit: 'km'
     });
   } catch (error) {
     console.error('Distance calculation error:', error);
-    res.status(500).json({ error: 'Failed to calculate distance' });
+    return res.status(500).json({ error: 'Failed to calculate distance' });
   }
 }));
 
@@ -124,14 +124,14 @@ router.post('/pickup-sites', asyncHandler(async (req: Request, res: Response) =>
     // Use real data if available, otherwise fallback to mock
     const sites = realSites.length > 0 ? realSites : mockSites;
     
-    res.json({
+    return res.json({
       sites: sites.sort((a: any, b: any) => a.distance - b.distance),
       count: sites.length,
       source: realSites.length > 0 ? 'openstreetmap' : 'mock'
     });
   } catch (error) {
     console.error('Pickup sites error:', error);
-    res.status(500).json({ error: 'Failed to fetch pickup sites' });
+    return res.status(500).json({ error: 'Failed to fetch pickup sites' });
   }
 }));
 
@@ -162,7 +162,7 @@ router.post('/geocode', asyncHandler(async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Address not found' });
     }
 
-    res.json({
+    return res.json({
       lat: parseFloat(result.lat),
       lon: parseFloat(result.lon),
       display_name: result.display_name,
@@ -170,7 +170,7 @@ router.post('/geocode', asyncHandler(async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Geocoding error:', error);
-    res.status(500).json({ error: 'Failed to geocode address' });
+    return res.status(500).json({ error: 'Failed to geocode address' });
   }
 }));
 
