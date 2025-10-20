@@ -21,27 +21,51 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 // Security middleware
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration - Allow mobile app access
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) {
         return callback(null, true);
       }
 
+      // Allow localhost (development)
       if (/^http:\/\/localhost:\d+$/.test(origin)) {
         return callback(null, true);
       }
 
+      // Allow ngrok URLs
+      if (/^https:\/\/.*\.ngrok-free\.(app|dev)$/.test(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow capacitor mobile app origins
+      if (/^capacitor:\/\/localhost$/.test(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow file:// origins (mobile apps)
+      if (/^file:\/\//.test(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow custom CORS_ORIGIN from environment
       if (process.env.CORS_ORIGIN && origin === process.env.CORS_ORIGIN) {
         return callback(null, true);
       }
 
+      // Allow all origins in development
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+
+      console.log('CORS blocked origin:', origin);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
