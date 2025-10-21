@@ -258,14 +258,14 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Overview Stats */}
       {dashboardData && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Active Users</p>
+                  <p className="text-sm text-gray-600">Unique Users</p>
                   <p className="text-3xl font-bold text-blue-600">
-                    {formatNumber(dashboardData.overview.active_users)}
+                    {formatNumber((dashboardData as any).summary?.uniqueUsers || 0)}
                   </p>
                 </div>
                 <Users className="w-8 h-8 text-blue-600" />
@@ -277,12 +277,12 @@ export const AdminDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total Donations</p>
+                  <p className="text-sm text-gray-600">Total Events</p>
                   <p className="text-3xl font-bold text-green-600">
-                    {formatNumber(dashboardData.overview.total_donations)}
+                    {formatNumber((dashboardData as any).summary?.totalEvents || 0)}
                   </p>
                 </div>
-                <Recycle className="w-8 h-8 text-green-600" />
+                <Activity className="w-8 h-8 text-green-600" />
               </div>
             </CardContent>
           </Card>
@@ -291,26 +291,12 @@ export const AdminDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Carbon Saved (kg)</p>
-                  <p className="text-3xl font-bold text-emerald-600">
-                    {formatNumber(Number(dashboardData.overview.carbon_saved))}
-                  </p>
-                </div>
-                <Leaf className="w-8 h-8 text-emerald-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Sessions</p>
+                  <p className="text-sm text-gray-600">Active Sessions</p>
                   <p className="text-3xl font-bold text-purple-600">
-                    {formatNumber(dashboardData.overview.total_sessions)}
+                    {formatNumber((dashboardData as any).summary?.activeSessions || 0)}
                   </p>
                 </div>
-                <Activity className="w-8 h-8 text-purple-600" />
+                <Smartphone className="w-8 h-8 text-purple-600" />
               </div>
             </CardContent>
           </Card>
@@ -319,82 +305,64 @@ export const AdminDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">App Opens</p>
+                  <p className="text-sm text-gray-600">Timeframe</p>
                   <p className="text-3xl font-bold text-indigo-600">
-                    {formatNumber(dashboardData.overview.app_opens)}
+                    {(dashboardData as any).summary?.timeframe || '7d'}
                   </p>
                 </div>
-                <Smartphone className="w-8 h-8 text-indigo-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Center Views</p>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {formatNumber(dashboardData.overview.center_views)}
-                  </p>
-                </div>
-                <MapPin className="w-8 h-8 text-orange-600" />
+                <Activity className="w-8 h-8 text-indigo-600" />
               </div>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Detailed Analytics */}
-      {dashboardData && (
-        <Tabs defaultValue="growth" className="space-y-6">
+      {/* Event Breakdown */}
+      {dashboardData && (dashboardData as any).eventBreakdown && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Event Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries((dashboardData as any).eventBreakdown).map(([eventType, count]) => (
+                <div key={eventType} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    {getEventIcon(eventType)}
+                    <span className="capitalize">{eventType.replace('_', ' ')}</span>
+                  </div>
+                  <span className="font-bold text-lg">{count as number}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Daily Activity */}
+      {dashboardData && (dashboardData as any).dailyActivity && (
+        <Tabs defaultValue="daily" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="growth">User Growth</TabsTrigger>
-            <TabsTrigger value="centers">Top Centers</TabsTrigger>
-            <TabsTrigger value="platforms">Platforms</TabsTrigger>
-            <TabsTrigger value="categories">Waste Categories</TabsTrigger>
-            <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+            <TabsTrigger value="daily">Daily Activity</TabsTrigger>
+            <TabsTrigger value="events">Top Events</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="growth">
+          <TabsContent value="daily">
             <Card>
               <CardHeader>
-                <CardTitle>User Growth Trend</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <LineChart data={dashboardData.userGrowth.reverse()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tickFormatter={formatDate} />
-                    <YAxis />
-                    <Tooltip labelFormatter={formatDate} />
-                    <Line type="monotone" dataKey="daily_users" stroke="#8884d8" name="Daily Users" />
-                    <Line type="monotone" dataKey="new_users" stroke="#82ca9d" name="New Users" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="centers">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Recycling Centers</CardTitle>
+                <CardTitle>Daily Activity</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {dashboardData.topCenters.map((center, index) => (
-                    <div key={center.center_id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="secondary">#{index + 1}</Badge>
-                        <div>
-                          <p className="font-semibold">{center.center_name || `Center ${center.center_id}`}</p>
-                          <p className="text-sm text-gray-600">{center.unique_users} unique users</p>
-                        </div>
+                  {((dashboardData as any).dailyActivity || []).map((day: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="font-medium">{day.date}</p>
+                        <p className="text-sm text-gray-600">{day.users} users</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-lg">{center.views}</p>
-                        <p className="text-sm text-gray-600">views</p>
+                        <p className="font-bold text-lg">{day.events}</p>
+                        <p className="text-sm text-gray-600">events</p>
                       </div>
                     </div>
                   ))}
@@ -403,96 +371,26 @@ export const AdminDashboard: React.FC = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="platforms">
+          <TabsContent value="events">
             <Card>
               <CardHeader>
-                <CardTitle>Platform Usage</CardTitle>
+                <CardTitle>Top Events</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={dashboardData.platformBreakdown}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ platform, percent }) => `${platform} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="users"
-                      >
-                        {dashboardData.platformBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  
-                  <div className="space-y-4">
-                    {dashboardData.platformBreakdown.map((platform, index) => (
-                      <div key={platform.platform} className="flex items-center justify-between">
+                <div className="space-y-4">
+                  {((dashboardData as any).topEvents || []).map(([eventType, count]: [string, number], index: number) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Badge variant="secondary">#{index + 1}</Badge>
                         <div className="flex items-center space-x-2">
-                          {platform.platform === 'web' ? <Monitor className="w-5 h-5" /> : <Smartphone className="w-5 h-5" />}
-                          <span className="capitalize">{platform.platform}</span>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">{platform.users} users</p>
-                          <p className="text-sm text-gray-600">{platform.events} events</p>
+                          {getEventIcon(eventType)}
+                          <span className="capitalize">{eventType.replace('_', ' ')}</span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="categories">
-            <Card>
-              <CardHeader>
-                <CardTitle>Waste Categories</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={400}>
-                  <BarChart data={dashboardData.wasteCategories}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="category" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="donations" fill="#8884d8" name="Donations" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="activity">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity (Last 24 Hours)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {dashboardData.recentActivity.map((activity, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                      {getEventIcon(activity.event_type)}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">{activity.username || 'Anonymous'}</span>
-                          <Badge variant="outline" className="text-xs">
-                            {activity.platform}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-gray-600">
-                          {activity.event_type.replace('_', ' ')}
-                          {activity.event_data?.category && ` - ${activity.event_data.category}`}
-                        </p>
+                      <div className="text-right">
+                        <p className="font-bold text-lg">{count}</p>
+                        <p className="text-sm text-gray-600">events</p>
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(activity.created_at).toLocaleTimeString()}
-                      </span>
                     </div>
                   ))}
                 </div>

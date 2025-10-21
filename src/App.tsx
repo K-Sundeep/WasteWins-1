@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigation } from './components/Navigation';
+import { Button } from './components/ui/button';
+import { AdminLogin } from './components/AdminLogin';
 import { Hero } from './components/Hero';
 import { QuickDonate } from './components/QuickDonate';
 import { HowItWorks } from './components/HowItWorks';
@@ -13,13 +15,14 @@ import { Toaster } from './components/ui/sonner';
 import { AuthProvider } from './components/AuthProvider';
 import { useAuth } from './components/AuthProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { Analytics } from "@vercel/analytics/react";
+// Removed Vercel Analytics - using custom backend analytics instead
 import { validateEnv } from './utils/env';
 import { useAnalytics } from './hooks/useAnalytics';
 
 function AppContent() {
   const { user } = useAuth();
   const { trackPageView } = useAnalytics();
+  const [adminAuthenticated, setAdminAuthenticated] = useState(false);
 
   useEffect(() => {
     validateEnv();
@@ -27,12 +30,13 @@ function AppContent() {
     trackPageView('home');
   }, [trackPageView]);
 
-  // Check if user is admin (you can modify this logic)
-  const isAdmin = user?.email === 'admin@wastewins.com' || (user as any)?.role === 'admin';
-
-  // Show admin dashboard if admin
-  if (isAdmin && window.location.pathname === '/admin') {
-    return <AdminDashboard />;
+  // Handle admin access
+  if (window.location.pathname === '/admin') {
+    if (!adminAuthenticated) {
+      return <AdminLogin onAdminLogin={setAdminAuthenticated} />;
+    } else {
+      return <AdminDashboard />;
+    }
   }
 
   return (
@@ -58,7 +62,7 @@ export default function App() {
     <ErrorBoundary>
       <AuthProvider>
         <AppContent />
-        <Analytics />
+        {/* Using custom backend analytics instead of Vercel Analytics */}
       </AuthProvider>
     </ErrorBoundary>
   );

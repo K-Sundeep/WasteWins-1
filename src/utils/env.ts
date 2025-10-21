@@ -30,33 +30,24 @@ export const env = {
  */
 export function validateEnv(): { valid: boolean; warnings: string[] } {
   const warnings: string[] = [];
-
-  // Only show warnings if not in free-only mode
-  if (!env.app.isFreeOnlyMode) {
-    // Check for recommended but not required keys
-    if (!env.mapbox.hasToken()) {
-      warnings.push('VITE_MAPBOX_TOKEN not set - using straight-line distance calculations');
+  
+  // Environment validation - warnings only in development
+  if (import.meta.env.DEV) {
+    if (!import.meta.env.VITE_MAPBOX_TOKEN) {
+      warnings.push('VITE_MAPBOX_TOKEN not set');
     }
 
-    if (!env.climatiq.hasKey()) {
-      warnings.push('VITE_CLIMATIQ_API_KEY not set - carbon calculations may be estimates');
+    if (!import.meta.env.VITE_CLIMATIQ_API_KEY) {
+      warnings.push('VITE_CLIMATIQ_API_KEY not set');
     }
-  }
 
-  // Log warnings in development (only if not in free-only mode)
-  if (env.app.isDevelopment && warnings.length > 0 && !env.app.isFreeOnlyMode) {
-    console.warn('⚠️ Environment Configuration Warnings:');
-    warnings.forEach((w) => console.warn(`  - ${w}`));
-    console.warn('See .env.example for setup instructions');
-  }
-
-  // Log free-only mode status
-  if (env.app.isDevelopment && env.app.isFreeOnlyMode) {
-    console.log('🆓 Running in Free-Only Mode - using built-in alternatives for all features');
+    if (warnings.length > 0) {
+      console.warn('⚠️ Env warnings:', warnings.join(', '));
+    }
   }
 
   return {
-    valid: true, // No hard requirements currently
+    valid: true,
     warnings,
   };
 }

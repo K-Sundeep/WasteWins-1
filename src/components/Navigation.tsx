@@ -81,13 +81,7 @@ export function Navigation() {
                   <span className="text-muted-foreground">Welcome, </span>
                   <span className="font-medium">{(user as any).user_metadata?.name || user.email}</span>
                 </div>
-                {/* Admin Dashboard Link */}
-                {(user.email === 'admin@wastewins.com' || (user as any)?.role === 'admin') && (
-                  <Button variant="ghost" size="sm" onClick={() => window.location.href = '/admin'} className="space-x-2">
-                    <BarChart3 className="w-4 h-4" />
-                    <span>Analytics</span>
-                  </Button>
-                )}
+                {/* Admin Dashboard Link - Hidden for security */}
                 <Button variant="ghost" size="sm" onClick={handleSignOut} className="space-x-2">
                   <LogOut className="w-4 h-4" />
                   <span>Sign Out</span>
@@ -147,6 +141,7 @@ export function Navigation() {
                         <span className="text-muted-foreground">Welcome, </span>
                         <span className="font-medium">{(user as any).user_metadata?.name || user.email}</span>
                       </div>
+                      {/* Admin Dashboard Link - Hidden for security */}
                       <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full justify-start space-x-2">
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
