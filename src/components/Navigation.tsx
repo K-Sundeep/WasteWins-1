@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Menu, X, Leaf, User, Gift, MapPin, LogOut, BarChart3 } from 'lucide-react';
+import { Menu, X, Leaf, User, Gift, MapPin, LogOut, BarChart3, Power } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from './AuthProvider';
 import { AuthDialog } from './AuthDialog';
+import { useMobile } from '../hooks/useMobile';
 import { toast } from 'sonner';
 import wasteWinsLogo from 'figma:asset/64842a1307aaa63c3be652b7db9827f80be7ab2a.png';
 
@@ -11,6 +12,7 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const { user, signOut, loading } = useAuth();
+  const { isMobile, isCapacitor, exitApp } = useMobile();
 
   const navItems = [
     { name: 'How it Works', href: '#how-it-works' },
@@ -146,6 +148,13 @@ export function Navigation() {
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
                       </Button>
+                      {/* Exit App Button - Only show on mobile */}
+                      {(isMobile || isCapacitor) && (
+                        <Button variant="ghost" size="sm" onClick={exitApp} className="w-full justify-start space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Power className="w-4 h-4" />
+                          <span>Exit App</span>
+                        </Button>
+                      )}
                     </>
                   ) : (
                     <>
@@ -157,6 +166,13 @@ export function Navigation() {
                         <Gift className="w-4 h-4" />
                         <span>Donate Now</span>
                       </Button>
+                      {/* Exit App Button - Only show on mobile */}
+                      {(isMobile || isCapacitor) && (
+                        <Button variant="ghost" size="sm" onClick={exitApp} className="w-full justify-start space-x-2 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Power className="w-4 h-4" />
+                          <span>Exit App</span>
+                        </Button>
+                      )}
                     </>
                   )}
                 </div>

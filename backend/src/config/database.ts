@@ -9,15 +9,24 @@ export const connectDatabase = async (): Promise<Pool> => {
   }
 
   try {
+    // Use DATABASE_URL if available (Render/production), otherwise individual vars (local dev)
+    const config = process.env.DATABASE_URL 
+      ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }
+      : {
+          host: process.env.DB_HOST || 'localhost',
+          port: parseInt(process.env.DB_PORT || '5432'),
+          database: process.env.DB_NAME || 'wastewins',
+          user: process.env.DB_USER || 'postgres',
+          password: process.env.DB_PASSWORD,
+        };
+
     pool = new Pool({
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'wastewins',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD,
-      max: 20, // Maximum number of clients in the pool
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      ...config,
+      max: 10, // Reduced max connections for better stability
+      idleTimeoutMillis: 60000, // Increased idle timeout
+      connectionTimeoutMillis: 10000, // Increased connection timeout
+      statement_timeout: 30000, // Statement timeout
+      query_timeout: 30000, // Query timeout
     });
 
     // Test the connection

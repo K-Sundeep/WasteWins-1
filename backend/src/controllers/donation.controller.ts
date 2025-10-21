@@ -12,6 +12,8 @@ const createDonationSchema = z.object({
   pickupType: z.string().optional(),
   address: z.string().optional(),
   timeSlot: z.string().optional(),
+  donationLocation: z.string().optional(),
+  distanceKm: z.number().optional(),
 });
 
 export class DonationController {
@@ -26,7 +28,7 @@ export class DonationController {
       throw new AppError(validation.error.errors[0].message, 400);
     }
 
-    const { category, weight, items, pickupType, address, timeSlot } = validation.data;
+    const { category, weight, items, pickupType, address, timeSlot, donationLocation, distanceKm } = validation.data;
 
     // Create donation
     const donation = await DonationModel.create({
@@ -37,6 +39,8 @@ export class DonationController {
       pickup_type: pickupType,
       address,
       time_slot: timeSlot,
+      donation_location: donationLocation,
+      distance_km: distanceKm,
     });
 
     // Update user stats

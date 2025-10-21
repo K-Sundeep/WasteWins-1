@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Exit Button Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .mobile-only {
+            background-color: #e8f5e8;
+        }
+        .desktop-only {
+            background-color: #f5f5f5;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .exit-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .test-btn {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 WasteWins Mobile Exit Button Test</h1>
+    
+    <div class="test-section">
+        <h2>📱 Device Detection</h2>
+        <p><strong>User Agent:</strong> <span id="userAgent"></span></p>
+        <p><strong>Screen Size:</strong> <span id="screenSize"></span></p>
+        <p><strong>Is Mobile:</strong> <span id="isMobile"></span></p>
+        <p><strong>Is Capacitor:</strong> <span id="isCapacitor"></span></p>
+    </div>
+
+    <div class="test-section mobile-only" id="mobileSection" style="display: none;">
+        <h2>📱 Mobile Exit Functionality</h2>
+        <p>✅ Mobile device detected! Exit button should be visible.</p>
+        <button class="exit-btn" onclick="testExit()">🔴 Test Exit App</button>
+        <button class="test-btn" onclick="testMinimize()">📱 Test Minimize</button>
+    </div>
+
+    <div class="test-section desktop-only" id="desktopSection">
+        <h2>💻 Desktop Mode</h2>
+        <p>ℹ️ Desktop detected. Exit button should be hidden.</p>
+        <p>To test mobile mode:</p>
+        <ul>
+            <li>Open browser dev tools (F12)</li>
+            <li>Toggle device toolbar (mobile view)</li>
+            <li>Refresh the page</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        // Mobile detection logic (same as in the React hook)
+        function detectMobile() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
+            return mobileRegex.test(userAgent.toLowerCase()) || window.innerWidth <= 768;
+        }
+
+        function detectCapacitor() {
+            return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        }
+
+        function updateDisplay() {
+            const isMobile = detectMobile();
+            const isCapacitor = detectCapacitor();
+            
+            // Update display elements
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+            document.getElementById('screenSize').textContent = `${window.innerWidth}x${window.innerHeight}`;
+            document.getElementById('isMobile').textContent = isMobile ? '✅ Yes' : '❌ No';
+            document.getElementById('isCapacitor').textContent = isCapacitor ? '✅ Yes (Native App)' : '❌ No (Web Browser)';
+            
+            // Show/hide sections
+            const mobileSection = document.getElementById('mobileSection');
+            const desktopSection = document.getElementById('desktopSection');
+            
+            if (isMobile || isCapacitor) {
+                mobileSection.style.display = 'block';
+                desktopSection.style.display = 'none';
+            } else {
+                mobileSection.style.display = 'none';
+                desktopSection.style.display = 'block';
+            }
+        }
+
+        function testExit() {
+            const isCapacitor = detectCapacitor();
+            let result = '';
+            
+            if (isCapacitor) {
+                // Test Capacitor exit
+                try {
+                    if (window.Capacitor?.Plugins?.App) {
+                        window.Capacitor.Plugins.App.exitApp();
+                        result = '✅ Capacitor exit called successfully';
+                    } else {
+                        result = '⚠️ Capacitor App plugin not available';
+                    }
+                } catch (error) {
+                    result = `❌ Capacitor exit failed: ${error.message}`;
+                }
+            } else {
+                // Test web exit
+                if (confirm('Test: Are you sure you want to exit the app?')) {
+                    result = '✅ Web exit confirmation shown (would close window)';
+                    // Don't actually close in test
+                    // window.close();
+                } else {
+                    result = '✅ Web exit cancelled by user';
+                }
+            }
+            
+            addTestResult('Exit Test', result);
+        }
+
+        function testMinimize() {
+            const isCapacitor = detectCapacitor();
+            let result = '';
+            
+            if (isCapacitor) {
+                try {
+                    if (window.Capacitor?.Plugins?.App) {
+                        window.Capacitor.Plugins.App.minimizeApp();
+                        result = '✅ Capacitor minimize called successfully';
+                    } else {
+                        result = '⚠️ Capacitor App plugin not available';
+                    }
+                } catch (error) {
+                    result = `❌ Capacitor minimize failed: ${error.message}`;
+                }
+            } else {
+                result = '⚠️ Minimize only available in native app';
+            }
+            
+            addTestResult('Minimize Test', result);
+        }
+
+        function addTestResult(testName, result) {
+            const resultsDiv = document.getElementById('testResults');
+            const timestamp = new Date().toLocaleTimeString();
+            resultsDiv.innerHTML += `<p><strong>[${timestamp}] ${testName}:</strong> ${result}</p>`;
+        }
+
+        // Initialize display
+        updateDisplay();
+        
+        // Update on resize
+        window.addEventListener('resize', updateDisplay);
+        
+        // Add initial test result
+        addTestResult('Page Load', '✅ Mobile exit test page loaded successfully');
+    </script>
+</body>
+</html>

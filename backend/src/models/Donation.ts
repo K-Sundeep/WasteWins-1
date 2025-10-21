@@ -33,8 +33,10 @@ export class DonationModel {
     pickup_type?: string;
     address?: string;
     time_slot?: string;
+    donation_location?: string;
+    distance_km?: number;
   }): Promise<Donation> {
-    const id = `DON-${Date.now()}-${uuidv4().substring(0, 8)}`;
+    const id = uuidv4(); // Use proper UUID format
     
     // Calculate points based on category
     const pointsPerKg: Record<string, number> = {
@@ -63,9 +65,9 @@ export class DonationModel {
     const result = await query(
       `INSERT INTO donations (
         id, user_id, category, weight, items, pickup_type, address, 
-        time_slot, status, current_step, points_earned, created_at, 
-        estimated_completion, tracking_steps
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), $12, $13)
+        time_slot, donation_location, distance_km, status, current_step, 
+        points_earned, created_at, estimated_completion, tracking_steps
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), $14, $15)
       RETURNING *`,
       [
         id,
@@ -76,6 +78,8 @@ export class DonationModel {
         donationData.pickup_type,
         donationData.address,
         donationData.time_slot,
+        donationData.donation_location,
+        donationData.distance_km,
         'collected',
         0,
         pointsEarned,

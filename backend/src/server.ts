@@ -15,7 +15,7 @@ import apiRoutes from './routes';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 const API_VERSION = process.env.API_VERSION || 'v1';
 
 // Security middleware
@@ -55,8 +55,8 @@ app.use(
         return callback(null, true);
       }
 
-      // Allow all origins in development
-      if (process.env.NODE_ENV === 'development') {
+      // Allow all origins in production for mobile apps
+      if (process.env.NODE_ENV === 'production') {
         return callback(null, true);
       }
 
@@ -132,6 +132,11 @@ const startServer: StartServer = async () => {
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
+
+    // Initialize database tables
+    const { initializeDatabase } = await import('./config/initDatabase');
+    await initializeDatabase();
+    logger.info('Database tables initialized');
 
     // Connect to Redis (optional)
     if (process.env.REDIS_HOST || process.env.REDIS_URL) {

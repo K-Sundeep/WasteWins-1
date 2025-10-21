@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigation } from './components/Navigation';
 import { Button } from './components/ui/button';
 import { AdminLogin } from './components/AdminLogin';
+import { MobileExitButton } from './components/MobileExitButton';
 import { Hero } from './components/Hero';
 import { QuickDonate } from './components/QuickDonate';
 import { HowItWorks } from './components/HowItWorks';
@@ -52,6 +53,7 @@ function AppContent() {
         <LifecycleTracker />
       </main>
       <Footer />
+      <MobileExitButton />
       <Toaster />
     </div>
   );
