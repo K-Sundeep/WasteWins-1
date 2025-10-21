@@ -15,6 +15,9 @@ const config: CapacitorConfig = {
     },
     StatusBar: {
       style: "dark"
+    },
+    App: {
+      handleBackButton: true
     }
   }
 };
