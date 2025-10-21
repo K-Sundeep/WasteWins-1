@@ -1,0 +1,26 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="60" cy="60" r="60" fill="#2F8A5C"/>
+  
+  <!-- Recycling Symbol -->
+  <g transform="translate(30, 30)">
+    <!-- Arrow 1 -->
+    <path d="M30 15 L45 25 L35 35 L25 30 Z" fill="#FFB35C" stroke="#FFFFFF" stroke-width="2"/>
+    <!-- Arrow 2 -->
+    <path d="M45 45 L35 55 L25 45 L30 35 Z" fill="#FFB35C" stroke="#FFFFFF" stroke-width="2"/>
+    <!-- Arrow 3 -->
+    <path d="M15 35 L25 25 L35 35 L30 45 Z" fill="#FFB35C" stroke="#FFFFFF" stroke-width="2"/>
+    
+    <!-- Center Circle -->
+    <circle cx="30" cy="35" r="8" fill="#FFFFFF"/>
+    
+    <!-- "W" in center -->
+    <text x="30" y="40" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#2F8A5C" text-anchor="middle">W</text>
+  </g>
+  
+  <!-- Leaf accent -->
+  <path d="M85 25 Q95 20 100 30 Q95 40 85 35 Q80 30 85 25" fill="#34D399"/>
+  
+  <!-- Text "WASTE WINS" -->
+  <text x="60" y="100" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">WASTE WINS</text>
+</svg>

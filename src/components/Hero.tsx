@@ -7,15 +7,15 @@ import wasteWinsLogo from 'figma:asset/64842a1307aaa63c3be652b7db9827f80be7ab2a.
 
 export function Hero() {
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 pt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 pt-16 md:pt-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-8 sm:py-12 md:py-16 lg:py-20">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12 items-center">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-8"
+            className="space-y-4 sm:space-y-6 md:space-y-8"
           >
             <div className="space-y-6">
               <motion.div
@@ -28,19 +28,19 @@ export function Hero() {
                 <span className="text-sm font-medium">Waste to Rewards Platform</span>
               </motion.div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-tight font-bold">
                 <span className="block">Turn Your</span>
                 <span className="block text-primary">Waste</span>
                 <span className="block">Into Rewards</span>
               </h1>
 
-              <p className="text-lg md:text-xl text-muted-foreground max-w-lg">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-lg leading-relaxed">
                 Donate clothes, biowaste, and plastics. Earn points. Redeem for custom solar panels. 
                 Track your environmental impact in real-time.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button 
                   size="lg" 
@@ -76,19 +76,19 @@ export function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
-              className="grid grid-cols-3 gap-8 pt-8 border-t border-border"
+              className="grid grid-cols-3 gap-3 sm:gap-6 md:gap-8 pt-6 sm:pt-8 border-t border-border"
             >
-              <div>
-                <div className="text-2xl font-semibold text-primary">15K+</div>
-                <div className="text-sm text-muted-foreground">Tons Recycled</div>
+              <div className="text-center sm:text-left">
+                <div className="text-xl sm:text-2xl font-semibold text-primary">15K+</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Tons Recycled</div>
               </div>
-              <div>
-                <div className="text-2xl font-semibold text-primary">50K+</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
+              <div className="text-center sm:text-left">
+                <div className="text-xl sm:text-2xl font-semibold text-primary">50K+</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Active Users</div>
               </div>
-              <div>
-                <div className="text-2xl font-semibold text-primary">200+</div>
-                <div className="text-sm text-muted-foreground">Partner Factories</div>
+              <div className="text-center sm:text-left">
+                <div className="text-xl sm:text-2xl font-semibold text-primary">200+</div>
+                <div className="text-xs sm:text-sm text-muted-foreground">Partner Factories</div>
               </div>
             </motion.div>
           </motion.div>
@@ -98,9 +98,9 @@ export function Hero() {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-            className="relative"
+            className="relative order-first lg:order-last"
           >
-            <div className="relative h-96 md:h-[500px] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl overflow-hidden">
+            <div className="relative h-64 sm:h-80 md:h-96 lg:h-[500px] bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl sm:rounded-3xl overflow-hidden">
               {/* Interactive Central Logo */}
               <motion.div
                 whileHover={{ 

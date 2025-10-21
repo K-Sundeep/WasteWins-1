@@ -33,6 +33,22 @@ yarn-error.log*
 # Testing
 coverage/
 
+# Android build artifacts
+android/app/build/
+android/capacitor-cordova-android-plugins/build/
+android/.gradle/
+*.apk
+*.aab
+
+# Backend build artifacts
+backend/node_modules/
+backend/dist/
+backend/.env
+
+# Temporary files
+*.bat
+*.tmp
+
 # Misc
 .cache/
 .temp/

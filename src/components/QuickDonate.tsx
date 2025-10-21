@@ -232,17 +232,17 @@ export function QuickDonate() {
   };
 
   return (
-    <section id="quick-donate" className="py-20 bg-card">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="quick-donate" className="py-12 sm:py-16 md:py-20 bg-card">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-10 md:mb-12"
         >
-          <h2 className="text-3xl md:text-4xl mb-4">Quick Donate</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl mb-3 sm:mb-4 font-bold">Quick Donate</h2>
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto px-4">
             Choose your waste category, estimate weight, enter your address and select a time slot for pickup.
           </p>
         </motion.div>
@@ -254,15 +254,15 @@ export function QuickDonate() {
           viewport={{ once: true }}
           className="max-w-4xl mx-auto"
         >
-          <Card className="p-8">
-            <CardHeader className="text-center pb-8">
-              <CardTitle className="text-2xl">Start Your Donation</CardTitle>
+          <Card className="p-4 sm:p-6 md:p-8">
+            <CardHeader className="text-center pb-6 sm:pb-8">
+              <CardTitle className="text-xl sm:text-2xl">Start Your Donation</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-8">
+            <CardContent className="space-y-6 sm:space-y-8">
               {/* Category Selection */}
               <div className="space-y-4">
                 <Label className="text-lg">Select Category</Label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                   {categories.map((category) => (
                     <motion.div
                       key={category.id}
@@ -277,7 +277,7 @@ export function QuickDonate() {
                         }`}
                         onClick={() => setSelectedCategory(category.id)}
                       >
-                        <CardContent className="p-6 text-center">
+                        <CardContent className="p-4 sm:p-6 text-center">
                           <div className="text-4xl mb-3">{category.icon}</div>
                           <h3 className="font-semibold mb-2">{category.name}</h3>
                           <Badge variant="secondary" className="text-xs">
@@ -291,7 +291,7 @@ export function QuickDonate() {
               </div>
 
               {/* Items and Weight */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="items" className="flex items-center space-x-2">
                     <span>Items Description *</span>
